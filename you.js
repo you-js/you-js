@@ -9,7 +9,8 @@ function start(configurations) {
 	engine = new Engine();
 
 	const screen = configurations.screen;
-	engine.screen = new Screen(screen.canvas, screen?.size ?? [window.screen.width, window.screen.height]);
+	const screenSize = screen?.size ?? [document.documentElement.clientWidth, document.documentElement.clientHeight];
+	engine.screen = new Screen(screen.canvas, screenSize);
 
 	engine.input = new Input(screen.canvas);
 
