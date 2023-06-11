@@ -9,7 +9,7 @@ class InputEvent {
     }
 
     static create(type, event) {
-        const inputEvent = new InputEvent(type);
+        const inputEvent = new InputEvent({ type });
 
         if (type === 'mousedown' || type === 'mouseup') {
             inputEvent.position = [event.offsetX, event.offsetY];
