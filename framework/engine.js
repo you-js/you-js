@@ -2,26 +2,25 @@ import { Loop } from "./loop.js";
 
 export class Engine {
 
-	constructor() {
+	constructor({ screen, input, application }) {
 		this.loop = new Loop();
-        this.screen = null;
-		this.input = null;
-		this.applications = [];
+        this.screen = screen;
+		this.input = input;
+		this.application = application;
 	}
 
 	start() {
-		this.applications.forEach(app => {
-			app.engine = this;
-			app.load().then(app.create.bind(app));
-		});
+		this.application.engine = this;
+		(async () => {
+			const result = await this.application.load();
+			this.application.create(result);
+		})();
 
 		this.input.connect();
 
 		this.loop.start(deltaTime => {
-			this.applications.forEach(app => {
-				app.update(deltaTime / 1000.0, this.input);
-				app.render(this.screen.context, this.screen);
-			});
+			this.application.update(deltaTime / 1000.0, this.input);
+			this.application.render(this.screen.context, this.screen);
 
 			this.input.clear();
 		});
@@ -32,9 +31,7 @@ export class Engine {
 
 		this.input.disconnect();
 
-		this.applications.forEach(app => {
-			app.destroy();
-			app.engine = null;
-		});
+		this.application.destroy();
+		this.application.engine = null;
 	}
 }

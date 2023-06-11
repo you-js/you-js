@@ -6,16 +6,15 @@ import { Screen } from "./framework/screen.js";
 let engine = null;
 
 function start(configurations) {
-	engine = new Engine();
-
 	const screen = configurations.screen;
 	const screenSize = screen?.size ?? [document.documentElement.clientWidth, document.documentElement.clientHeight];
-	engine.screen = new Screen(screen.canvas, screenSize);
+	const application = configurations.application;
 
-	engine.input = new Input(screen.canvas);
-
-	const applications = configurations.applications;
-	applications.forEach(app => engine.applications.push(app));
+	engine = new Engine({
+		screen: new Screen(screen.canvas, screenSize),
+		input: new Input(screen.canvas),
+		application,
+	});
 
 	engine.start();
 }
