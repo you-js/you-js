@@ -1,4 +1,4 @@
-import { EventEmitter } from "../utilities/event.js";
+import { EventEmitter } from "../utility/event.js";
 
 export class Object {
 
