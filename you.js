@@ -1,5 +1,7 @@
+import {} from "./utility/array.js";
 import {} from "./utility/vector.js";
 import {} from "./utility/geometry.js";
+import {} from "./utility/math.js";
 import { Engine } from "./framework/engine.js";
 import { Input } from "./framework/input.js";
 import { Screen } from "./framework/screen.js";
