@@ -128,7 +128,7 @@ export class View extends Object {
         context.restore();
 	}
 
-    handleUIEvent(input) {
+    handleUIEvent(events) {
         if (this[STATE] !== STATES.CREATED) { return }
         if (!this[ENABLE]) { return }
         if (!this.size) { return }
@@ -136,10 +136,10 @@ export class View extends Object {
 
         const area = [...this.globalPosition, ...this.size];
 
-        this.event.emit('willHandleUIEvent', input);
+        this.event.emit('willHandleUIEvent', events);
 
         const propagationEvents = new Set();
-        for (const event of input.events) {
+        for (const event of events) {
             if (!event.propagationToChild) { continue }
             if (!event.type.startsWith('mouse')) { continue }
 
@@ -153,11 +153,11 @@ export class View extends Object {
         if (propagationEvents.size > 0) {
             const objects = [...this.objects];
             for (let i = objects.length - 1; i >= 0; i--) {
-                objects[i].handleUIEvent?.(propagationEvents, input);
+                objects[i].handleUIEvent?.(propagationEvents);
             }
         }
 
-        for (const event of input.events) {
+        for (const event of events) {
             if (event.type !== 'mousemove') {
                 if (!this.eventHandling) { continue }
                 if (!event.propagationToParent) { continue }
@@ -207,6 +207,6 @@ export class View extends Object {
             }
         }
 
-        this.event.emit('didHandleUIEvent', input);
+        this.event.emit('didHandleUIEvent', events);
     }
 }

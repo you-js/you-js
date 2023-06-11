@@ -60,7 +60,7 @@ export class SceneApplication extends Application {
 			}
 		}
 
-		this.scenes[0]?.handleUIEvent(input);
+		this.scenes[0]?.handleUIEvent(input.events);
 
 		this.willUpdate(deltaTime, input);
 		this.event.emit('willUpdate', deltaTime, input);

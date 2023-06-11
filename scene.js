@@ -80,10 +80,10 @@ export class Scene extends Stateful {
 		}
 	}
 
-    handleUIEvent(input) {
+    handleUIEvent(events) {
         if (this[STATE] === STATES.CREATED && this[ENABLE]) {
             for (let i = this.objects.length - 1; i >= 0; i--) {
-                this.objects[i].handleUIEvent?.(input);
+                this.objects[i].handleUIEvent?.(events);
             }
         }
     }
