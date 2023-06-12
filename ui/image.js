@@ -37,7 +37,7 @@ export class Image extends View {
         this.smoothing = smoothing;
     }
 
-    render(context, screen, screens) {
+    render(context, screen) {
         if (this[STATE] !== STATES.CREATED) { return }
 		if (!this[ENABLE]) { return }
         if (!this.visible) { return }
@@ -59,8 +59,8 @@ export class Image extends View {
             context.restore();
         }
 
-        this.willRender(context, screen, screens);
-        this.event.emit('willRender', context, screen, screens);
+        this.willRender(context, screen);
+        this.event.emit('willRender', context, screen);
 
         context.save();
         context.imageSmoothingEnabled = this.smoothing;
@@ -68,10 +68,10 @@ export class Image extends View {
         this.image?.render(context, 0, 0, ...this.size);
         context.restore();
 
-        this.components.forEach(component => component.render(context, screen, screens));
-        this.objects.forEach(object => object.render(context, screen, screens));
-        this.didRender(context, screen, screens);
-        this.event.emit('didRender', context, screen, screens);
+        this.components.forEach(component => component.render(context, screen));
+        this.objects.forEach(object => object.render(context, screen));
+        this.didRender(context, screen);
+        this.event.emit('didRender', context, screen);
 
         if (this.borderColor) {
             context.save();
