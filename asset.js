@@ -1,5 +1,9 @@
 import { Image } from "./graphic/image.js";
 
+const REFERENCE_STRING_FORMAT = /^[^@]*@(\/*([^*./<>?:"|\\/]+\/)*[^*./<>?:"|\\/]+[.][^*./<>?:"|\\/]+)(:[^.]+([.][^.]+)*)?$/;
+const USER_DEFINED_CLASS_PREFIX_FORMAT = /^((?:(?:[^*./<>?:"|\\/]+|[.][.]?)\/)*[^*./<>?:"|\\/]+[.][^*./<>?:"|\\/]+):([a-zA-Z_]\w*)$/;
+const LOCATOR_STRING_FORMAT = /^([^*./<>?:"|\\/]+\/)*[^*./<>?:"|\\/]+([.][^*./<>?:"|\\/]+)*$/;
+
 const PARENT = Symbol('parent');
 const PATH = Symbol('path');
 const LOADED = Symbol('loaded');
@@ -11,6 +15,8 @@ const CHILDREN = Symbol('children');
 const ASSET_PROPERTIES = {
     PARENT, PATH, LOADED, DATA, REFER_TO, REFER_FROM, CHILDREN
 };
+
+class NotFoundNodeError extends Error {}
 
 export function parseResourceContainer(container) {
 	container = container instanceof Object ? container : {};
@@ -95,13 +101,21 @@ export class AssetNode extends AssetObject {
         });
     }
 
+    _refer(node) {
+        this[REFER_TO].push(node);
+        node[REFER_FROM].push(this);
+    }
+
     async load() {
+        if (this[LOADED]) { return this }
+
         const base = import.meta.resolve('resources');
         const path = new URL(this[PATH], base).href;
 
         if (path.endsWith('.json')) {
             const response = await fetch(path);
-            this[DATA] = await response.json();
+            const data = await response.json();
+            this[DATA] = await this._parse(data);
         }
         else if (path.endsWith('.png')) {
             this[DATA] = new Image(path);
@@ -114,7 +128,134 @@ export class AssetNode extends AssetObject {
         return this;
     }
 
+    async _parse(data) {
+        if (typeof data === 'string') {
+            return await this._parseString(data);
+        }
+        else if (data instanceof Object) {
+            return await this._parseObject(data);
+        }
+        else if (data instanceof Array) {
+            return await this._parseArray(data);
+        }
+        else {
+            return data;
+        }
+    }
+
+    async _parseString(string) {
+        const isReferenceString = REFERENCE_STRING_FORMAT.test(string);
+        if (isReferenceString) {
+            return await this._parseReferenceString(string);
+        }
+        else {
+            return string;
+        }
+    }
+
+    async _parseReferenceString(string) {
+        const [prefix, refPath, postfix] = string.split(/@|:/);
+        const accessors = postfix?.split('.') ?? [];
+
+        if (prefix === 'create') {
+            const base = import.meta.resolve('app');
+            const path = new URL(refPath, base).href;
+
+            if (path.endsWith('.json')) {
+                const response = await fetch(path);
+                const data = await response.json();
+                return await this._parse(data);
+            }
+            else if (path.endsWith('.png')) {
+                return new Image(path);
+            }
+            else { throw `not supported file: ${path}` }
+        }
+        else {
+            let node = null;
+
+            try {
+                if (refPath.startsWith('resources')) {
+                    node = this.root._get(refPath.slice(10));
+                    await node.load();
+                    this._refer(node);
+                }
+                else {
+                    throw new NotFoundNodeError();
+                }
+            }
+            catch(e) {
+                if (e instanceof NotFoundNodeError) { return e }
+                else { throw e }
+            }
+
+            const data = accessors.reduce((acc, cur) => acc[cur], node[DATA]);
+            return data;
+        }
+    }
+
+    async _parseObject(object) {
+        for (const key in object) {
+            object[key] = await this._parse(object[key]);
+        }
+
+        const isInstantiatableObject = '@class' in object;
+        if (isInstantiatableObject) {
+            return this._parseInstantiatableObject(object);
+        }
+        else {
+            return object;
+        }
+    }
+
+    async _parseInstantiatableObject(object) {
+        const type = await this._parseUserDefinedClassString(object['@class']);
+
+        const hasInstantiator = '@instantiator' in object;
+        if (hasInstantiator) {
+            const instantiator = object['@instantiator'];
+            return type[instantiator](object);
+        }
+        else {
+            return new type(object);
+        }
+    }
+
+    async _parseUserDefinedClassString(string) {
+        const matched = string.match(USER_DEFINED_CLASS_PREFIX_FORMAT);
+        const isNotUserDefinedClassString = matched === null;
+        if (isNotUserDefinedClassString) { throw `invalid syntax: ${string}` }
+
+        const base = import.meta.resolve('app');
+        const path = new URL(matched[1], base).href;
+        const name = matched[2];
+
+        const module = await import(path);
+        const type = module[name];
+
+        return type;
+    }
+
+    async _parseArray(array) {
+        return Promise.all(array.map(item => this._parse(item)));
+    }
+
     release() {
+        while (this[REFER_FROM].length >= 1) {
+            this[REFER_FROM].pop().release();
+        }
+
+        while (this[REFER_TO].length >= 1) {
+            const referee = this[REFER_TO].pop();
+            const index = referee[REFER_FROM].indexOf(this);
+            if (index >= 0) {
+                referee[REFER_FROM].splice(index, 1);
+                if (referee[REFER_FROM].length <= 0) {
+                    referee.release();
+                }
+            }
+        }
+
         this[DATA] = null;
         this[LOADED] = false;
         this[PARENT]?._refresh();
@@ -175,6 +316,26 @@ export class AssetContainer extends AssetObject {
             value: container,
             enumerable: true,
         });
+    }
+
+    _get(locator) {
+        const isLocatorString = LOCATOR_STRING_FORMAT.test(locator);
+        if (!isLocatorString) { throw `invalid locator: ${locator}` }
+
+        let assetObject = this;
+        const steps = locator.split('/');
+        for (const step of steps) {
+            assetObject = this._getChildObject(assetObject, step);
+        }
+
+        return assetObject;
+    }
+
+    _getChildObject(object, childObjectId) {
+        const isEmptyObject = object === null;
+        if (isEmptyObject) { throw new NotFoundNodeError() }
+
+        return object[CHILDREN][childObjectId] ?? object[childObjectId] ?? null;
     }
 
     async load(childId=null) {
