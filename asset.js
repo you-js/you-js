@@ -215,10 +215,14 @@ export class AssetNode extends AssetObject {
         const hasInstantiator = '@instantiator' in object;
         if (hasInstantiator) {
             const instantiator = object['@instantiator'];
-            return isGenerative ? { generate: (args) => type[instantiator]({...object, ...args}) } : type[instantiator](object);
+            return isGenerative
+                ? { generate: argumentGetter => type[instantiator]({...object, ...(argumentGetter?.(object) ?? object)}) }
+                : type[instantiator](object);
         }
         else {
-            return isGenerative ? { generate: (args) => new type({...object, ...args}) } : new type(object);
+            return isGenerative
+                ? { generate: argumentGetter => new type({...object, ...(argumentGetter?.(object) ?? object)}) }
+                : new type(object);
         }
     }
 
