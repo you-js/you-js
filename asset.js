@@ -201,23 +201,24 @@ export class AssetNode extends AssetObject {
 
         const isInstantiatableObject = '@class' in object;
         if (isInstantiatableObject) {
-            return this._parseInstantiatableObject(object);
+            const isGenerative = '@generative' in object && object['@generative'];
+            return this._parseInstantiatableObject(object, isGenerative);
         }
         else {
             return object;
         }
     }
 
-    async _parseInstantiatableObject(object) {
+    async _parseInstantiatableObject(object, isGenerative=false) {
         const type = await this._parseUserDefinedClassString(object['@class']);
 
         const hasInstantiator = '@instantiator' in object;
         if (hasInstantiator) {
             const instantiator = object['@instantiator'];
-            return type[instantiator](object);
+            return isGenerative ? { generate: (args) => type[instantiator]({...object, ...args}) } : type[instantiator](object);
         }
         else {
-            return new type(object);
+            return isGenerative ? { generate: (args) => new type({...object, ...args}) } : new type(object);
         }
     }
 
