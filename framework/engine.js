@@ -16,20 +16,20 @@ export class Engine {
 			this.application.create(result);
 		})();
 
-		this.input.connect();
+		this.input?.connect();
 
 		this.loop.start(deltaTime => {
 			this.application.update(deltaTime / 1000.0, this.input);
-			this.application.render(this.screen.context, this.screen);
+			this.screen && this.application?.render(this.screen.context, this.screen);
 
-			this.input.clear();
+			this.input?.clear();
 		});
 	}
 
 	stop() {
 		this.loop.stop();
 
-		this.input.disconnect();
+		this.input?.disconnect();
 
 		this.application.destroy();
 		this.application.engine = null;

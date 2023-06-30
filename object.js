@@ -25,7 +25,7 @@ export class Object extends Stateful {
 		components.forEach(component => this.addComponent(component));
 		objects.forEach(object => this.add(object));
 
-		window.Object.defineProperty(this, 'parent', { value: null, writable: true });
+		globalThis.Object.defineProperty(this, 'parent', { value: null, writable: true });
 	}
 
 	get root() { return this.parent?.root ?? this.parent }

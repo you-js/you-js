@@ -31,6 +31,8 @@ export class SceneApplication extends Application {
 	scenes = [];
 	queue = [];
 
+	get scene() { return this.scenes?.[0] ?? null }
+
 	push(scene, ...args) {
 		this.queue.push({ type:'push', scene, args });
 	}
@@ -60,7 +62,7 @@ export class SceneApplication extends Application {
 			}
 		}
 
-		this.scenes[0]?.handleUIEvent(input.events);
+		input && this.scenes[0]?.handleUIEvent(input.events);
 
 		this.willUpdate(deltaTime, input);
 		this.event.emit('willUpdate', deltaTime, input);

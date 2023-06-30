@@ -11,7 +11,11 @@ export class Scene extends Stateful {
 
     create(...args) {
         if (this[STATE] === STATES.INSTANTIATED) {
-            this.camera = new Camera(this.application.screen);
+            this.camera = (
+                this.application.screen
+                ? new Camera(this.application.screen)
+                : null
+            );
 
 			this.willCreate(...args);
 			this.event.emit('willCreate', ...args);

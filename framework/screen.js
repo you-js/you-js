@@ -3,6 +3,10 @@ export class Screen {
     constructor(canvas, size=null) {
 		this.canvas = canvas;
 
+		if (size === null) {
+			size = [document.documentElement.clientWidth, document.documentElement.clientHeight];
+		}
+
         if (size instanceof Array && size.length === 2) {
             if (size[0]) { this.canvas.width = size[0] }
             if (size[1]) { this.canvas.height = size[1] }

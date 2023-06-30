@@ -5,8 +5,8 @@ export class Object {
 	constructor({
 		events={},
 	}={}) {
-		window.Object.defineProperty(this, 'event', { value: new EventEmitter(this) });
-		window.Object.keys(events).forEach(event => this.event.on(event, events[event]));
+		globalThis.Object.defineProperty(this, 'event', { value: new EventEmitter(this) });
+		globalThis.Object.keys(events).forEach(event => this.event.on(event, events[event]));
 	}
 
 	create(...args) {
@@ -59,7 +59,7 @@ export class Enable extends Loopable {
 	}={}) {
 		super({ events });
 
-		window.Object.defineProperty(this, ENABLE, { value: enable, writable: true });
+		globalThis.Object.defineProperty(this, ENABLE, { value: enable, writable: true });
 	}
 
 	get enable() { return this[ENABLE] }
@@ -120,7 +120,7 @@ export class Stateful extends Enable {
 	}={}) {
 		super({ enable, events });
 
-		window.Object.defineProperty(this, STATE, { value: STATES.INSTANTIATED, writable: true });
+		globalThis.Object.defineProperty(this, STATE, { value: STATES.INSTANTIATED, writable: true });
 	}
 
 	get created() { return this[STATE] === STATES.CREATED }

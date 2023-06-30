@@ -4,7 +4,7 @@ export class Image {
         this.url = url;
 
         this.loaded = false;
-        this.raw = new window.Image();
+        this.raw = globalThis.Image ? new globalThis.Image() : {};
         this.raw.onload = () => { this.loaded = true }
         this.raw.src = url;
     }

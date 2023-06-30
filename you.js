@@ -11,12 +11,11 @@ let engine = null;
 
 function start(configurations) {
 	const screen = configurations.screen;
-	const screenSize = screen?.size ?? [document.documentElement.clientWidth, document.documentElement.clientHeight];
 	const application = configurations.application;
 
 	engine = new Engine({
-		screen: new Screen(screen.canvas, screenSize),
-		input: new Input(screen.canvas),
+		screen: screen ? new Screen(screen.canvas, screen?.size) : null,
+		input: screen ? new Input(screen.canvas) : null,
 		application,
 	});
 
