@@ -146,7 +146,7 @@ export class Label extends View {
 
         const textPosition = TEXT_POSITION_MAP(this.size, this.alignment);
 
-        const texts = this.text.split('\n');
+        const texts = this.text?.split('\n') ?? [];
         context.fillStyle = this.fontColor;
         for (let l = 0; l < texts.length; l++) {
             const measure = context.measureText(texts[l]);
