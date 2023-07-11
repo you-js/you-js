@@ -82,3 +82,105 @@ export class Sprite {
         });
     }
 }
+
+export class Animation {
+
+    constructor({
+        id, enable=true, frames, speed=1, repeat=true,
+    }={}) {
+        if (!id) { throw 'required' }
+        if (!frames || frames.length <= 0) { throw 'required' }
+        this.id = id;
+        this.enable = enable;
+        this.frames = frames;
+        this.speed = speed;
+        this.repeat = repeat;
+
+        this.value = 0;
+        this._currentFrameIndex = 0;
+        this._boundaries = [0];
+        this.frames.reduce((acc, cur) => {
+            const result = acc + cur.duration;
+            this._boundaries.push(result);
+            return result;
+        }, 0);
+        this._duration = this._boundaries[this._boundaries.length - 1];
+    }
+
+    get sprite() {
+        return this.frames[this._currentFrameIndex].sprite;
+    }
+
+    update(deltaTime) {
+        if (!this.enable) { return }
+
+        let next = this.value + deltaTime * this.speed;
+
+        next = (
+            this.repeat
+            ? next % this._duration
+            : Math.min(next, this._duration)
+        );
+
+        for (let i = 0; i < this.frames.length; i++) {
+            const index = (this._currentFrameIndex + i) % this.frames.length;
+            if (this._boundaries[index] <= next && next <= this._boundaries[index + 1]) {
+                this.value = next;
+                this._currentFrameIndex = index;
+                break;
+            }
+        }
+	}
+
+    render(context, position, scale) {
+        this.frames[this._currentFrameIndex].sprite.render(context, position, scale);
+    }
+
+    play(startPosition=null) {
+        if (startPosition) {
+            this.value = (startPosition + this._duration) % this._duration;
+        }
+
+        this.enable = true;
+    }
+
+    pause() {
+        this.enable = false;
+    }
+
+    stop() {
+        this.enable = false;
+        this.value = 0;
+        this._currentFrameIndex = 0;
+    }
+
+    toJSON() {
+        return {
+            id: this.id,
+            frames: this.frames.map(frame => ({ sprite: frame.sprite.toJSON(), duration: frame.duration })),
+            speed: this.speed,
+            repeat: this.repeat,
+        };
+    }
+
+    static fromJSON(obj) {
+        obj = {...obj};
+        obj.frames = obj.frames.map(frame => ({
+            sprite: Sprite.fromJSON(frame.sprite),
+            duration: frame.duration
+        }));
+        return new this(obj);
+    }
+
+    copy(deep=true) {
+        const instance = Animation.fromJSON(this.toJSON());
+
+        if (deep) {
+            instance.enable = this.enable;
+            instance.value = this.value;
+            instance._currentFrameIndex = this._currentFrameIndex;
+        }
+
+        return instance;
+    }
+}
