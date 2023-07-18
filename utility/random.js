@@ -50,20 +50,12 @@ export class Random {
         return count === 1 ? result[0] : result;
     }
     static binomial(n, p, size=1) {
-        const values = Array.repeat(size, () => Math.random());
-        const result = Array.repeat(size, n);
-        let cum = 0;
-        let prob = Math.pow(1-p, n);
-        for (let i = 0; i < n; i++) {
-            cum += statistics.combination(n, i) * prob;
-            values.forEach((value, index) => {
-                if (result[index] === n && value < cum) {
-                    result[index] = i;
-                }
-            });
-            prob *= p / (1-p);
-        }
-
-        return result;
+        return Array.repeat(size, () => {
+            let result = 0;
+            for (let i = 0; i < n; i++) {
+                if (Math.random() < p) { result++ }
+            }
+            return result;
+        });
     }
 }
