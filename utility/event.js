@@ -12,7 +12,7 @@ export class EventEmitter {
             this.eventGroups[event] = [];
         }
 
-        this.eventGroups[event].push([listener.bind(this.bindingObject), count]);
+        this.eventGroups[event].push([listener, count]);
     }
 
     remove(event, listener=null) {
@@ -38,7 +38,7 @@ export class EventEmitter {
                 return;
             }
 
-            listener?.(...args);
+            listener?.bind(this.bindingObject)?.(...args);
         });
     }
 }
