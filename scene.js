@@ -9,6 +9,10 @@ export class Scene extends Stateful {
     objects = [];
     camera = null;
 
+    get size() {
+        return this.application.screen.size;
+    }
+
     create(...args) {
         if (this[STATE] === STATES.INSTANTIATED) {
             this.camera = (
