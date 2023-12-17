@@ -46,13 +46,6 @@ Object.defineProperty(Array.prototype, 'div', {
     }
 });
 
-Object.defineProperty(Array.prototype, 'equals', {
-    value: function (other) {
-        if (this.length !== other.length) { throw Error() }
-        return this.every((v, i) => v === other[i]);
-    }
-});
-
 Object.defineProperty(Array.prototype, 'dot', {
     value: function (other) {
         if (this.length !== other.length) { throw Error() }

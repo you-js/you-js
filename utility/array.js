@@ -40,6 +40,12 @@ Array.zeros = function (...shape) {
     }
 };
 
+Object.defineProperty(Array.prototype, 'equals', {
+    value: function (other) {
+        return this.every((value, index) => value === other[index]);
+    }
+});
+
 Object.defineProperty(Array.prototype, 'remove', {
     value: function (object) {
         const index = this.indexOf(object);
