@@ -56,7 +56,7 @@ Object.defineProperty(Array.prototype, 'intersects', {
             }
         }
         else if (this.length === 6) {
-            if (other.length === 4) {
+            if (other.length === 6) {
                 return (
                     this[0] < other[0] + other[3] && other[0] < this[0] + this[3] &&
                     this[1] < other[1] + other[4] && other[1] < this[1] + this[4] &&
@@ -75,7 +75,11 @@ Object.defineProperty(Array.prototype, 'intersects', {
 
 Object.defineProperty(Array.prototype, 'center', {
     get() {
-        return this.map((v, i) => v + this[i + this.length / 2] / 2);
+        const halfLength = this.length / 2;
+
+        return this.slice(0, halfLength).map(
+            (v, i) => v + this[i + halfLength] / 2
+        );
     }
 });
 
