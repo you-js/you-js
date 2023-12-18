@@ -7,12 +7,14 @@ import { Screen } from "./framework/screen.js";
 import { ResourceParser } from "./asset/resource-parser.js";
 import { Core } from "./framework/core.js";
 
+let core = null;
+
 function start(configurations) {
     const screen = new Screen(configurations.screen);
     const application = new configurations.application();
     const assets = ResourceParser.parse(configurations.resources);
 
-    const core = new Core({ screen });
+    core = new Core({ screen });
 
     globalThis.core = core;
     globalThis.application = application;
@@ -25,4 +27,9 @@ function start(configurations) {
     core.start(assets, application);
 }
 
-export default { start };
+function stop() {
+    core.stop();
+    core = null;
+}
+
+export default { start, stop };
