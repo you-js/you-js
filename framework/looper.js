@@ -88,7 +88,9 @@ export class Looper {
     }
 
     #startWithWorker() {
-        this.#worker = new Worker('./framework/worker.js');
+        const currentPath = import.meta.url.split('/').slice(0, -1).join('/');
+        const workerPath = `${currentPath}/worker.js`;
+        this.#worker = new Worker(workerPath);
         this.#worker.addEventListener('message', e => {
             this.#loopWithWorker(e.data);
         });
