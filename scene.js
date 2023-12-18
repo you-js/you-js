@@ -78,9 +78,9 @@ export class Scene {
         }
 
         if (this.camera != null) {
-            this.objects.toReversed().forEach(object => object.handle?.(events, this.camera));
+            [...this.objects].reverse().forEach(object => object.handle?.(events, this.camera));
         }
-        this.views.toReversed().forEach(view => view.handle?.(events));
+        [...this.views].reverse().forEach(view => view.handle?.(events));
         this.didHandle(events);
     }
 

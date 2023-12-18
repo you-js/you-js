@@ -329,7 +329,7 @@ export class View {
 
         if (!(this.eventHandling === TargetPolicy.Self || this.rendering === TargetPolicy.Self)) {
             if (propagatingEvents.length > 0) {
-                this._objects.toReversed().forEach(object => object.handle(propagatingEvents));
+                [...this._objects].reverse().forEach(object => object.handle(propagatingEvents));
             }
         }
 
