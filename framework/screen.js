@@ -1,36 +1,144 @@
+const ResizeType = {
+	Fill: Symbol('resize-type-fill'),
+	Pack: Symbol('resize-type-pack'),
+};
+
 export class Screen {
 
-    constructor(canvas, size=null) {
-		this.canvas = canvas;
+	static ResizeType = ResizeType;
 
-		if (size === null) {
-			size = [document.documentElement.clientWidth, document.documentElement.clientHeight];
-		}
+	canvas;
+    #originalSize = [0, 0];
+    #size = [0, 0];
 
-        if (size instanceof Array && size.length === 2) {
-            if (size[0]) { this.canvas.width = size[0] }
-            if (size[1]) { this.canvas.height = size[1] }
+    #eventQueue = null;
+
+    constructor({
+        canvas,
+        size,
+		resizeType=ResizeType.Fill,
+    }={}) {
+        this.canvas = canvas;
+        this.#originalSize.splice(0, 2, size[0], size[1]);
+        this.#size.splice(0, 2, size[0], size[1]);
+		this.resizeType = resizeType;
+
+        this.canvas.width = size[0];
+        this.canvas.height = size[1];
+
+        this.context = canvas.getContext('2d');
+
+        this.onResizeCallback = this.onResize.bind(this);
+
+        if (this.resizeType === ResizeType.Fill) {
+			this.#fill();
+        }
+        else if (this.resizeType === ResizeType.Pack) {
+			this.#pack();
+        }
+    }
+
+    connect(eventQueue) {
+        this.#eventQueue = eventQueue;
+
+		window.addEventListener('resize', this.onResizeCallback);
+    }
+
+    disconnect() {
+		window.removeEventListener('resize', this.onResizeCallback);
+
+        this.#eventQueue = null;
+    }
+
+    fill() {
+        this.resizeType = ResizeType.Fill;
+		this.#fill();
+    }
+
+	#fill() {
+		this.size = [
+			window.innerWidth,
+			window.innerHeight
+		];
+	}
+
+    pack() {
+        this.resizeType = ResizeType.Pack;
+		this.#pack();
+    }
+
+	#pack() {
+		this.size = this.#originalSize;
+	}
+
+    onResize(event) {
+        if (this.resizeType === ResizeType.Fill) {
+			this.#fill();
+        }
+        else if (this.resizeType === ResizeType.Pack) {
+			this.#pack();
         }
 
-		this.context = canvas.getContext('2d');
-	}
+        this.#eventQueue?.push({
+			type: 'resize',
+			size: [
+				window.innerWidth,
+				window.innerHeight
+			],
+		});
+    }
 
-    get width() { return this.canvas.width }
-	set width(value) { this.canvas.width = value }
+    get size() {
+        return [...this.#size];
+    }
 
-	get height() { return this.canvas.height }
-	set height(value) { this.canvas.height = value }
+    set size(value) {
+        this.#size.splice(0, 2, ...value);
 
-	get size() { return [this.canvas.width, this.canvas.height] }
-	set size(value) { [this.canvas.width, this.canvas.height] = value }
+        const states = {};
 
-	clear() {
-		this.context.clearRect(0, 0, ...this.size);
-	}
+        for (const key in this.context) {
+            if (key === 'canvas') { continue }
+            else if (typeof this.context[key] === 'function') { continue }
+            states[key] = this.context[key];
+        }
 
-    static createOffscreen(id, size) {
-		const offscreenCanvas = document.createElement('canvas');
+        this.canvas.width = value[0];
+        this.canvas.height = value[1];
 
-		return new Screen(id, size, offscreenCanvas);
+        for (const key in states) {
+            this.context[key] = states[key];
+        }
+    }
+
+    get width() {
+        return this.#size[0];
+    }
+
+    set width(value) {
+        this.#size[0] = value;
+
+        this.canvas.width = value;
+    }
+
+    get height() {
+        return this.#size[1];
+    }
+
+    set height(value) {
+        this.#size[1] = value;
+
+        this.canvas.height = value;
+    }
+
+    clear() {
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+
+	static createOffscreen(size) {
+		return new Screen({
+			canvas: document.createElement('canvas'),
+			size,
+		});
 	}
 }

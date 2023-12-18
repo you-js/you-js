@@ -1,83 +1,142 @@
-import { Loopable } from "./framework/object.js";
+import { EventQueue } from "./framework/event.js";
+import { Scene } from './scene.js';
+import { Camera } from "./camera.js";
 
-export class Application extends Loopable {
+export class Application {
 
-	engine = null;
+    #scene = null;
+    #nextScene = null;
 
-	constructor({
-		events={},
-		asset,
-	}={}) {
-		super({ events });
-		this.asset = asset;
-	}
+    constructor({
+        scene=null,
+    }={}) {
+        this.#scene = scene;
 
-	get screen() { return this.engine.screen }
+        this.eventQueue = new EventQueue();
 
-	async load(...args) {
-		return await this.onLoad(...args);
-	}
-	async onLoad(...args) {}
+        this.channels = {
+            screen: null,
+            mouse: null,
+            keyboard: null,
+        };
+    }
 
-	render(context, screen) {
-		screen.clear();
+    get scene() { return this.#scene }
 
-		super.render(context, screen);
-	}
-}
+    connect(channel) {
+        if (channel.type === 'screen') {
+            this.channels.screen = channel.object;
+            this.channels.screen.connect(this.eventQueue);
 
-export class SceneApplication extends Application {
+            if (this.#scene != null) {
+                this.#scene.screen = this.channels.screen;
+                this.#scene.camera = new Camera({ screen: this.channels.screen });
+            }
+        }
+        else if (channel.type === 'mouse') {
+            this.channels.mouse = channel.object;
+            this.channels.mouse.connect(this.eventQueue);
+        }
+        else if (channel.type === 'keyboard') {
+            this.channels.keyboard = channel.object;
+            this.channels.keyboard.connect(this.eventQueue);
+        }
+    }
 
-	scenes = [];
-	queue = [];
+    disconnect() {
+        if (this.#scene != null) {
+            this.#scene.screen = null;
+            this.#scene.camera = null;
+        }
 
-	get scene() { return this.scenes?.[0] ?? null }
+        this.channels.screen.disconnect();
+        this.channels.screen = null;
+        this.channels.mouse.disconnect();
+        this.channels.mouse = null;
+        this.channels.keyboard.disconnect();
+        this.channels.keyboard = null;
+    }
 
-	push(scene, ...args) {
-		this.queue.push({ type:'push', scene, args });
-	}
+    async load(assets) {
+        await this.onLoad(assets);
+    }
 
-	pop(...args) {
-		this.queue.push({ type: 'pop', args });
-	}
+    async onLoad(assets) {}
 
-	transit(scene, { exitArgs=[], enterArgs=[] }={}) {
-		this.pop(...exitArgs);
-		this.push(scene, ...enterArgs);
-	}
+    transit(scene) {
+        if (!(scene instanceof Scene)) {
+            throw `scene is not Scene instance: ${scene}`;
+        }
 
-	update(deltaTime, input) {
-		while (this.queue.length > 0) {
-			const item = this.queue.shift();
-			if (item.type === 'push') {
-				const scene = item.scene;
-				this.scenes.unshift(scene);
-				scene.application = this;
-				scene.create(...item.args);
-			}
-			else if (item.type === 'pop') {
-				const scene = this.scenes.shift();
-				scene.destroy(...item.args);
-				scene.application = null;
-			}
-		}
+        this.#nextScene = scene;
+    }
 
-		input && this.scenes[0]?.handleUIEvent(input.events);
+    create() {
+        this.willCreate();
+        this.#scene?.create();
+		this.didCreate();
+    }
 
-		this.willUpdate(deltaTime, input);
-		this.event.emit('willUpdate', deltaTime, input);
-		this.scenes[0]?.update(deltaTime, input);
-		this.didUpdate(deltaTime, input);
-		this.event.emit('didUpdate', deltaTime, input);
-	}
+    willCreate() {}
+	didCreate() {}
 
-	render(context, screen) {
-		super.render(context, screen);
+    destroy() {
+        this.willDestroy();
+        this.#scene?.destroy();
+        this.willDestroy();
+    }
 
-		this.willRender(context, screen);
-		this.event.emit('willRender', context, screen);
-		this.scenes[0]?.render(context, screen);
-		this.didRender(context, screen);
-		this.event.emit('didRender', context, screen);
-	}
+	willDestroy() {}
+	didDestroy() {}
+
+    update(deltaTime) {
+        this.willUpdate(deltaTime);
+
+        this.#scene?.handle(this.eventQueue.events);
+        this.#scene?.update(deltaTime);
+
+		this.didUpdate(deltaTime);
+
+        if (this.#nextScene != null) {
+            this.#transitNextScene();
+        }
+
+        this.eventQueue.clear();
+    }
+
+    willUpdate(deltaTime) {}
+    didUpdate(deltaTime) {}
+
+    #transitNextScene() {
+        if (this.#scene != null) {
+            this.#scene.screen = null;
+            this.#scene.camera = null;
+            this.#scene.destroy();
+        }
+
+        this.#scene = this.#nextScene;
+        this.#nextScene = null;
+
+        if (this.#scene != null) {
+            if (this.channels.screen != null) {
+                this.#scene.screen = this.channels.screen;
+                this.#scene.camera = new Camera({ screen: this.channels.screen });
+            }
+
+            this.#scene.create(this.channels.screen?.size);
+        }
+    }
+
+    render() {
+        if (this.channels.screen == null) { return }
+
+        this.channels.screen.clear();
+
+        this.willRender(this.channels.screen.context);
+        this.#scene?.render(this.channels.screen.context);
+        this.didRender(this.channels.screen.context);
+    }
+
+    willRender(context) {}
+    didRender(context) {}
 }

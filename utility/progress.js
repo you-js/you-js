@@ -1,66 +1,55 @@
-import { EventEmitter } from "../utility/event.js";
+import { EventEmitter } from './event.js';
 
 export class Progress {
 
-    constructor(speed=1, repeat=false) {
-        Object.defineProperty(this, 'event', { value: new EventEmitter(this) });
+    value;
+    speed;
+    loop;
+    events;
+
+    constructor({
+        value=0,
+        speed=1,
+        loop=false,
+        events={},
+    }={}) {
+        this.value = value;
         this.speed = speed;
-        this.repeat = repeat;
+        this.loop = loop;
+
+        this.events = new EventEmitter({ bindee: this, handlers: events });
+    }
+
+    update(deltaTime, ...args) {
+        if (this.value < 1) {
+            this.value += deltaTime * this.speed;
+
+            if (this.value >= 1) {
+                if (this.loop) {
+                    const count = Math.trunc(this.value);
+                    this.value -= count;
+
+                    for (let i = 0; i < count; i++) {
+                        this.events.emit('exceed', ...args);
+                    }
+                }
+                else {
+                    this.value = 1;
+                    this.events.emit('finish', ...args);
+                }
+            }
+        }
+    }
+
+    reset() {
         this.value = 0;
     }
 
-    update(delta, ...args) {
-        if (!this.repeat &&
-            (this.speed > 0 && this.value >= 1 || this.speed < 0 && this.value <= 0)) { return }
-        this.value += delta * this.speed;
-
-        this.event.emit('update', this.value, ...args);
-
-        if (this.value >= 1) {
-            if (!this.repeat) {
-                this.value = 1;
-                this.event.emit('finish', this.value, ...args);
-            }
-            else {
-                const count = Math.trunc(this.value);
-                this.value -= count;
-
-                for (let i = 0; i < count; i++) {
-                    this.event.emit('exceed', this.value, ...args);
-                }
-            }
-        }
-        else if (this.value <= 0) {
-            if (!this.repeat) {
-                this.value = 0;
-                this.event.emit('finish', this.value, ...args);
-            }
-            else {
-                const count = Math.trunc(this.value);
-                this.value -= count;
-
-                for (let i = 0; i < -count; i++) {
-                    this.event.emit('exceed', this.value, ...args);
-                }
-            }
-        }
-    }
-
-    static create(speed, repeat, update, finish, exceed) {
-        const animation = new this(speed, repeat);
-
-        if (update) {
-            animation.event.on('update', update);
-        }
-
-        if (finish) {
-            animation.event.on('finish', finish);
-        }
-
-        if (exceed) {
-            animation.event.on('exceed', exceed);
-        }
-
-        return animation;
+    dispose() {
+        this.value = null;
+        this.speed = null;
+        this.loop = null;
+        this.events.dispose();
+        this.events = null;
     }
 }

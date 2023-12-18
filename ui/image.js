@@ -1,86 +1,67 @@
-import { ENABLE, STATE, STATES } from "../framework/object.js";
-import { View } from "./view.js";
+import { View } from './view.js';
 
 export class Image extends View {
 
     constructor({
-        name='', enable=true,
-		tags=[],
-		components=[],
-		objects=[],
-		events={},
-        eventHandling=true,
-        visible=true,
-        position=[0, 0], size,
-        clip=true,
-        backgroundColor=null,
-        borderColor=null, borderWidth=1,
-        image=null,
+        renderable,
         alpha=1,
         smoothing=true,
+        ...args
     }={}) {
         super({
-            name, enable,
-            tags,
-            components,
-            objects,
-            events,
-            eventHandling,
-            visible,
-            position, size, clip,
-            backgroundColor,
-            borderColor, borderWidth,
+            eventHandling: View.TargetPolicy.Ignore,
+            rendering: View.TargetPolicy.Self,
+            updating: View.TargetPolicy.Ignore,
+            ...args,
         });
 
-        this.image = image;
+        this.renderable = renderable;
         this.alpha = alpha;
         this.smoothing = smoothing;
     }
 
-    render(context, screen) {
-        if (this[STATE] !== STATES.CREATED) { return }
-		if (!this[ENABLE]) { return }
-        if (!this.visible) { return }
+    render(context, screenSize) {
+        if (this.rendering === View.TargetPolicy.Ignore) { return }
+        if (this._realSize[0] == null || this._realSize[1] == null) { return }
+        if (this._realSize[0] === 0 || this._realSize[1] === 0) { return }
 
         context.save();
 
-        context.translate(...this.position.map(Math.floor));
-
-        if (this.clip) {
-            context.beginPath();
-            context.rect(0, 0, ...this.size.map(Math.floor));
-            context.clip();
-        }
-
-        if (this.backgroundColor) {
-            context.save();
-            context.fillStyle = this.backgroundColor;
-            context.fillRect(0, 0, ...this.size.map(Math.floor));
-            context.restore();
-        }
-
-        this.willRender(context, screen);
-        this.event.emit('willRender', context, screen);
-
-        context.save();
         context.imageSmoothingEnabled = this.smoothing;
         context.globalAlpha = this.alpha;
-        this.image?.render(context, 0, 0, ...this.size);
-        context.restore();
+        context.translate(...this._realPosition.map(Math.floor));
 
-        this.components.forEach(component => component.render(context, screen));
-        this.objects.forEach(object => object.render(context, screen));
-        this.didRender(context, screen);
-        this.event.emit('didRender', context, screen);
+        context.beginPath();
+        context.rect(0, 0, ...this._realSize.map(Math.floor));
+        context.clip();
 
-        if (this.borderColor) {
+        if (this.rendering !== View.TargetPolicy.Children) {
+            if (this.backgroundColor) {
+                context.fillStyle = this.backgroundColor;
+                context.fillRect(0, 0, ...this._realSize.map(Math.floor));
+            }
+
+            this.renderable?.render(context);
+
+            this.onRender(context, screenSize);
+            this.events.emit('render', context, screenSize);
+        }
+
+        if (this.rendering !== View.TargetPolicy.Self) {
             context.save();
-            context.lineWidth = this.borderWidth;
-            context.strokeStyle = this.borderColor;
-            context.strokeRect(0, 0, ...this.size.map(Math.floor));
+            context.translate(Math.floor(this.padding), Math.floor(this.padding));
+            this._objects.forEach(object => object.render(context, screenSize));
             context.restore();
         }
 
+        if (this.rendering !== View.TargetPolicy.Children) {
+            if (this.borderColor && this.borderWidth > 0) {
+                context.lineWidth = this.borderWidth;
+                context.strokeStyle = this.borderColor;
+                context.strokeRect(.5, .5, ...this._realSize.add([-1, -1]));
+            }
+        }
+
         context.restore();
-	}
+    }
 }

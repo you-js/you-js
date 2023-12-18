@@ -1,21 +1,35 @@
-export class Image {
+import { Renderable } from "./renderable.js";
 
-    constructor(url) {
-        this.url = url;
+export class Image extends Renderable {
 
-        this.loaded = false;
-        this.raw = globalThis.Image ? new globalThis.Image() : {};
-        this.raw.onload = () => { this.loaded = true }
-        this.raw.src = url;
+    raw;
+    loading;
+
+    constructor({
+        source,
+    }={}) {
+        super({ source });
+
+        this.raw = new globalThis.Image();
+        this.raw._loaded = false;
+        this.raw.src = source;
+
+        this.loading = new Promise((resolve, reject) => {
+            this.raw.addEventListener('load', () => {
+                this.raw._loaded = true;
+                resolve();
+            });
+        });
     }
 
+    get loaded() { return this.raw._loaded }
     get width() { return this.raw.width }
     get height() { return this.raw.height }
     get size() { return [this.raw.width, this.raw.height] }
 
-    render(context, ...args) {
-        if (this.loaded === false) { return }
+    render(context, position=[0, 0], scale=[1, 1]) {
+        if (!this.raw._loaded) { return }
 
-        context.drawImage(this.raw, ...args);
+        context.drawImage(this.raw, ...position, this.raw.width * scale[0], this.raw.height * scale[1]);
     }
 }

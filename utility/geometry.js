@@ -145,3 +145,20 @@ Object.defineProperty(Array.prototype, 'align', {
         ];
     }
 });
+
+export function getDirectionFromVector(v) {
+    const angle = (Math.atan2(v[1], -v[0]) + Math.PI) * 180 / Math.PI;
+
+    if (45 <= angle && angle < 135) {
+        return 'up';
+    }
+    else if (135 <= angle && angle < 225) {
+        return 'left';
+    }
+    else if (225 <= angle && angle < 315) {
+        return 'down';
+    }
+    else {
+        return 'right';
+    }
+}

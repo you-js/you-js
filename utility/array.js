@@ -42,7 +42,20 @@ Array.zeros = function (...shape) {
 
 Object.defineProperty(Array.prototype, 'equals', {
     value: function (other) {
-        return this.every((value, index) => value === other[index]);
+        if (other instanceof Array) {
+            if (other.length === this.length) {
+                return this.every((value, index) => value === other[index]);
+            }
+            else if (other.length === 1) {
+                return this.every(value => value === other[0]);
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            return this.every(value => value === other);
+        }
     }
 });
 

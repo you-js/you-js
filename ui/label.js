@@ -1,198 +1,149 @@
-import { ENABLE, STATE, STATES } from "../framework/object.js";
-import { Scene } from "../scene.js";
-import { View } from "./view.js";
+import { View } from './view.js';
 
-const TEXT_POSITION_MAP = (size, alignment) => [
-    { left: 0, center: size[0] / 2 + 1, right: size[0] - 1 }[alignment.horizontal],
-    { top: 0, middle: size[1] / 2 + 1, bottom: size[1] }[alignment.vertical],
-];
+const HORIZONTAL_ALIGN = {
+    left: 0,
+    center: 0.5,
+    right: 1,
+};
 
-const FIT_CONTENT = Symbol('pack');
+const VERTICAL_ALIGN = {
+    top: 0,
+    middle: 0.5,
+    bottom: 1,
+};
 
 export class Label extends View {
 
-    static SIZE = { FIT_CONTENT };
+    static font = '16px sans-serif';
+    static fontColor = 'black';
+    static textAlign = 'left';
+    static textBaseline = 'top';
+
+    #textMetrics = null;
 
     constructor({
-        name='', enable=true,
-		tags=[],
-		components=[],
-		objects=[],
-		events={},
-        eventHandling=true,
-        visible=true,
-        position=[0, 0], size,
-        clip=true,
-        backgroundColor=null,
-        borderColor=null, borderWidth=1,
         text='',
-        fontColor='black', fontSize='12px', fontFamily='sans-serif',
+        font,
+        fontColor,
+        textAlign,
+        textBaseline,
         alpha=1,
-        alignment={ horizontal: 'center', vertical: 'middle' },
+        ...args
     }={}) {
         super({
-            name, enable,
-            tags,
-            components,
-            objects,
-            events,
-            eventHandling,
-            visible,
-            position, size, clip,
-            backgroundColor,
-            borderColor, borderWidth,
+            eventHandling: View.TargetPolicy.Ignore,
+            rendering: View.TargetPolicy.Self,
+            updating: View.TargetPolicy.Ignore,
+            ...args
         });
 
         this.text = text;
-        this.fontColor = fontColor;
-        this.fontSize = fontSize;
-        this.fontFamily = fontFamily;
+        this.font = font ?? this.constructor.font;
+        this.fontColor = fontColor ?? this.constructor.fontColor;
+        this.textAlign = textAlign ?? this.constructor.textAlign;
+        this.textBaseline = textBaseline ?? this.constructor.textBaseline;
         this.alpha = alpha;
-        this.alignment = {
-            horizontal: alignment.horizontal ?? 'center',
-            vertical: alignment.vertical ?? 'middle',
-        };
     }
 
-    get font() { return `${this.fontSize} ${this.fontFamily}` }
-    set font(value) {
-        [this.fontSize, this.fontFamily] = value.split(' ');
+    evaluateWrapSizeSelf() {
+        this.#textMetrics = this.#measureText(this.text);
+
+        if (this._size[0] === View.Size.Wrap) {
+            this._realSize[0] = Math.ceil(this.#textMetrics.actualBoundingBoxLeft + this.#textMetrics.actualBoundingBoxRight + this.padding * 2);
+        }
+
+        if (this._size[1] === View.Size.Wrap) {
+            this._realSize[1] = Math.ceil(this.#textMetrics.actualBoundingBoxAscent + this.#textMetrics.actualBoundingBoxDescent + this.padding * 2);
+        }
     }
 
-    create(...args) {
-        if (this[STATE] !== STATES.INSTANTIATED) { return }
+    #measureText(text) {
+        const context = globalThis.canvas.getContext('2d');
+        context.font = this.font;
+        context.textAlign = this.textAlign;
+        context.textBaseline = this.textBaseline;
+        const metrics = context.measureText(text);
+        return metrics;
+    }
 
-        if (this.position instanceof Function) {
-            this.position = this.position.bind(this)(this, this.parent?.objects?.indexOf(this) ?? undefined);
-        }
-        if ((this.size ?? null) === null) {
-            this.size = [null, null];
-        }
-        else if (this.size instanceof Function) {
-            this.size = this.size.bind(this)(this, this.parent?.objects?.indexOf(this) ?? undefined);
-        }
-
-        if (this.size[0] === null) {
-            this.size[0] = this.parent instanceof Scene ? this.scene.application.screen.size[0] : this.parent.size[0];
-        }
-        if (this.size[1] === null) {
-            this.size[1] = this.parent instanceof Scene ? this.scene.application.screen.size[1] : this.parent.size[1];
-        }
-
-        if (this.size === Label.SIZE.FIT_CONTENT) {
-            this.size = [Label.SIZE.FIT_CONTENT, Label.SIZE.FIT_CONTENT];
-        }
-
-        if (this.size[0] === Label.SIZE.FIT_CONTENT ||
-            this.size[1] === Label.SIZE.FIT_CONTENT) {
-            const screen = this.scene.application.screen;
-            const context = screen.context;
-
-            context.save();
-            context.textAlign = this.alignment.horizontal;
-            context.textBaseline = 'top';
-            context.font = `${this.fontSize} ${this.fontFamily}`;
-            const textMetrics = context.measureText(this.text);
-            context.restore();
-
-            if (this.size[0] === Label.SIZE.FIT_CONTENT) {
-                this.size[0] = Math.abs(textMetrics.actualBoundingBoxLeft)
-                            + Math.abs(textMetrics.actualBoundingBoxRight);
-            }
-            if (this.size[1] === Label.SIZE.FIT_CONTENT) {
-                this.size[1] = Math.abs(textMetrics.fontBoundingBoxAscent)
-                            + Math.abs(textMetrics.fontBoundingBoxDescent);
-            }
-        }
-
-		this.willCreate(...args);
-		this.event.emit('willCreate', ...args);
-		this[STATE] = STATES.CREATED;
-		this.components.forEach(component => component.create(...args));
-		this.objects.forEach(object => object.create(...args));
-		this.didCreate(...args);
-		this.event.emit('didCreate', ...args);
-	}
-
-    render(context, screen) {
-        if (this[STATE] !== STATES.CREATED) { return }
-		if (!this[ENABLE]) { return }
-        if (!this.visible) { return }
+    render(context, screenSize) {
+        if (this.rendering === View.TargetPolicy.Ignore) { return }
+        if (this._realSize[0] == null || this._realSize[1] == null) { return }
+        if (this._realSize[0] === 0 || this._realSize[1] === 0) { return }
 
         context.save();
 
         context.globalAlpha = this.alpha;
-        context.translate(...this.position.map(Math.floor));
+        context.translate(...this._realPosition.map(Math.floor));
 
-        context.textAlign = this.alignment.horizontal;
-        context.textBaseline = this.alignment.vertical;
-        context.font = `${this.fontSize} ${this.fontFamily}`;
+        context.beginPath();
+        context.rect(0, 0, ...this._realSize.map(Math.floor));
+        context.clip();
 
-        if (this.clip) {
-            context.beginPath();
-            context.rect(0, 0, ...this.size.map(Math.floor));
-            context.clip();
+        if (this.rendering !== View.TargetPolicy.Children) {
+            if (this.backgroundColor) {
+                context.fillStyle = this.backgroundColor;
+                context.fillRect(0, 0, ...this._realSize.map(Math.floor));
+            }
+
+            context.font = this.font;
+            context.fillStyle = this.fontColor;
+            context.textAlign = this.textAlign;
+            context.textBaseline = this.textBaseline;
+            const align = [
+                this.padding + HORIZONTAL_ALIGN[this.textAlign] * (this._realSize[0] - this.padding * 2),
+                this.padding + VERTICAL_ALIGN[this.textBaseline] * (this._realSize[1] - this.padding * 2),
+            ].map(Math.floor);
+
+            align.splice(0, 2, ...align.add(this.#getOffset()));
+
+            context.fillText(this.text ?? '', ...align);
+
+            this.onRender(context, screenSize);
+            this.events.emit('render', context, screenSize);
         }
 
-        if (this.backgroundColor) {
+        if (this.rendering !== View.TargetPolicy.Self) {
             context.save();
-            context.fillStyle = this.backgroundColor;
-            context.fillRect(0, 0, ...this.size.map(Math.floor));
+            context.translate(Math.floor(this.padding), Math.floor(this.padding));
+            this._objects.forEach(object => object.render(context, screenSize));
             context.restore();
         }
 
-        this.willRender(context, screen);
-        this.event.emit('willRender', context, screen);
-
-        const textPosition = TEXT_POSITION_MAP(this.size, this.alignment);
-
-        const texts = this.text?.split('\n') ?? [];
-        context.fillStyle = this.fontColor;
-        for (let l = 0; l < texts.length; l++) {
-            const measure = context.measureText(texts[l]);
-            const height = measure.fontBoundingBoxAscent + measure.fontBoundingBoxDescent;
-            context.fillText(texts[l], ...textPosition.add([0, l * height]));
-        }
-
-        this.components.forEach(component => component.render(context, screen));
-        this.objects.forEach(object => object.render(context, screen));
-        this.didRender(context, screen);
-        this.event.emit('didRender', context, screen);
-
-        if (this.borderColor) {
-            context.save();
-            context.lineWidth = this.borderWidth;
-            context.strokeStyle = this.borderColor;
-            context.strokeRect(0, 0, ...this.size.map(Math.floor));
-            context.restore();
+        if (this.rendering !== View.TargetPolicy.Children) {
+            if (this.borderColor && this.borderWidth > 0) {
+                context.lineWidth = this.borderWidth;
+                context.strokeStyle = this.borderColor;
+                context.strokeRect(.5, .5, ...this._realSize.add([-1, -1]));
+            }
         }
 
         context.restore();
-	}
+    }
 
-    pack({
-        horizontal=false,
-        vertical=false,
-    }) {
-        if (!horizontal && !vertical) { return }
+    #getOffset() {
+        const offsets = [];
 
-        const screen = this.scene.application.screen;
-        const context = screen.context;
-
-        context.save();
-        context.textAlign = this.alignment.horizontal;
-        context.textBaseline = 'top';
-        context.font = `${this.fontSize} ${this.fontFamily}`;
-        const textMetrics = context.measureText(this.text);
-        context.restore();
-
-        if (horizontal) {
-            this.size[0] = Math.abs(textMetrics.actualBoundingBoxLeft)
-                        + Math.abs(textMetrics.actualBoundingBoxRight);
+        if (this.textAlign === 'left') {
+            offsets[0] = this.#textMetrics.actualBoundingBoxLeft;
         }
-        if (vertical) {
-            this.size[1] = Math.abs(textMetrics.fontBoundingBoxAscent)
-                        + Math.abs(textMetrics.fontBoundingBoxDescent);
+        else if (this.textAlign === 'center') {
+            offsets[0] = (this.#textMetrics.actualBoundingBoxLeft - this.#textMetrics.actualBoundingBoxRight) / 2;
         }
+        else if (this.textAlign === 'right') {
+            offsets[0] = -this.#textMetrics.actualBoundingBoxRight;
+        }
+
+        if (this.textBaseline === 'top') {
+            offsets[1] = this.#textMetrics.actualBoundingBoxAscent;
+        }
+        else if (this.textBaseline === 'middle') {
+            offsets[1] = (this.#textMetrics.actualBoundingBoxAscent - this.#textMetrics.actualBoundingBoxDescent) / 2;
+        }
+        else if (this.textBaseline === 'bottom') {
+            offsets[1] = -this.#textMetrics.actualBoundingBoxDescent;
+        }
+
+        return offsets;
     }
 }
