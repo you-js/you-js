@@ -51,6 +51,7 @@ export class Scene {
 
     create() {
         this.willCreate();
+        this.objects.forEach(object => object.create());
         this.views.forEach(view => view.create());
         this.views.forEach(view => view.evaluate(this.screen.size));
         this.didCreate();
@@ -62,6 +63,7 @@ export class Scene {
     destroy() {
         this.willDestroy();
         this.views.forEach(view => view.destroy());
+        this.objects.forEach(object => object.destroy());
         this.didDestroy();
     }
 
