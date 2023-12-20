@@ -51,7 +51,7 @@ export class Scene {
 
     create() {
         this.willCreate();
-        this.objects.forEach(object => object.create());
+        this.objects.forEach(object => object.create?.());
         this.views.forEach(view => view.create());
         this.views.forEach(view => view.evaluate(this.screen.size));
         this.didCreate();
@@ -63,7 +63,7 @@ export class Scene {
     destroy() {
         this.willDestroy();
         this.views.forEach(view => view.destroy());
-        this.objects.forEach(object => object.destroy());
+        this.objects.forEach(object => object.destroy?.());
         this.didDestroy();
     }
 
@@ -82,7 +82,7 @@ export class Scene {
         if (this.camera != null) {
             [...this.objects].reverse().forEach(object => object.handle?.(events, this.camera));
         }
-        [...this.views].reverse().forEach(view => view.handle?.(events));
+        [...this.views].reverse().forEach(view => view.handle(events));
         this.didHandle(events);
     }
 
@@ -92,7 +92,7 @@ export class Scene {
     update(deltaTime) {
         this.willUpdate(deltaTime);
         this.objects.forEach(object => object.update?.(deltaTime));
-        this.views.forEach(view => view.update?.(deltaTime));
+        this.views.forEach(view => view.update(deltaTime));
         this.didUpdate(deltaTime);
     }
 
@@ -110,7 +110,7 @@ export class Scene {
         });
         this.didRender(context, screenSize);
 
-        this.views.forEach(view => view.render?.(context, screenSize));
+        this.views.forEach(view => view.render(context, screenSize));
     }
 
     willRender(context, screenSize) {}
