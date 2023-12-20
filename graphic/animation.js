@@ -1,3 +1,4 @@
+import { EventEmitter } from "../utility/event.js";
 import { Renderable } from "./renderable.js";
 
 export class Animation extends Renderable {
@@ -14,6 +15,7 @@ export class Animation extends Renderable {
     constructor({
         source,
         frames, speed=1, loop=true,
+        events={},
     }={}) {
         super({ source });
 
@@ -24,6 +26,7 @@ export class Animation extends Renderable {
         this.frames = frames;
         this.speed = speed;
         this.loop = loop;
+        this.events = new EventEmitter({ bindee: this, handlers: events });
 
         this.#currentTime = 0;
         this.#currentFrameIndex = 0;
@@ -52,17 +55,27 @@ export class Animation extends Renderable {
         this.#currentFrameIndex = this.#findFrameIndex();
     }
 
-    update(deltaTime) {
-        this.#currentTime += deltaTime * this.speed;
+    update(deltaTime, ...args) {
+        if (this.#currentTime < this.#duration) {
+            this.#currentTime += deltaTime * this.speed;
 
-        if (this.loop) {
-            this.#currentTime = this.#currentTime % this.#duration;
-        }
-        else {
-            this.#currentTime = Math.min(this.#currentTime, this.#duration);
-        }
+            if (this.#currentTime >= this.#duration) {
+                if (this.loop) {
+                    const count = Math.trunc(this.#currentTime);
+                    this.#currentTime -= count;
 
-        this.#currentFrameIndex = this.#findFrameIndex();
+                    for (let i = 0; i < count; i++) {
+                        this.events.emit('exceed', ...args);
+                    }
+                }
+                else {
+                    this.#currentTime = this.#duration;
+                    this.events.emit('finish', ...args);
+                }
+            }
+
+            this.#currentFrameIndex = this.#findFrameIndex();
+        }
 	}
 
     #findFrameIndex() {
@@ -74,6 +87,8 @@ export class Animation extends Renderable {
                 return index;
             }
         }
+
+        return this.frames.length - 1;
     }
 
     render(context, position=[0, 0], scale=[1, 1]) {
