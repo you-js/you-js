@@ -198,6 +198,7 @@ export class AssetNode extends AssetObject {
             case 'json':
                 return await this.#loadJsonFromPath(path);
             case 'txt':
+            case 'script':
                 return await this.#loadTextFromPath(path);
             default:
                 throw `not supported file type: ${path}`;
