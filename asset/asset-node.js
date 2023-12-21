@@ -197,6 +197,8 @@ export class AssetNode extends AssetObject {
                 return await this.#loadImageFromPath(path);
             case 'json':
                 return await this.#loadJsonFromPath(path);
+            case 'txt':
+                return await this.#loadTextFromPath(path);
             default:
                 throw `not supported file type: ${path}`;
         }
@@ -212,6 +214,12 @@ export class AssetNode extends AssetObject {
         const response = await fetch(path);
         const data = await response.json();
         return await this._parse(data);
+    }
+
+    async #loadTextFromPath(path) {
+        const response = await fetch(path);
+        const data = await response.text();
+        return data;
     }
 
     #getByLocator(locator) {
