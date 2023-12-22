@@ -46,13 +46,14 @@ const random = {
         randomContextStack.shift();
     },
     with(callback) {
-        if (randomContextStack.length === 0) { callback() }
+        if (randomContextStack.length === 0) { return callback() }
 
         const [seed, randomNumberGenerator] = randomContextStack[0];
         const previousRandomNumberGenerator = Math.random;
         Math.random = randomNumberGenerator;
-        callback(seed);
+        const result = callback(seed);
         Math.random = previousRandomNumberGenerator;
+        return result;
     },
     generate(count) {
         return Array.from({ length: count }, () => Math.random());
