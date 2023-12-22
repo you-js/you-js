@@ -6,12 +6,12 @@ const Position = {
     End:    Symbol('position-end'),
 };
 
-export const Size = {
+const Size = {
     Fill: Symbol('size-fill'),
     Wrap: Symbol('size-wrap'),
 };
 
-export const TargetPolicy = {
+const TargetPolicy = {
     Both:     Symbol('target-policy-both'),
     Self:     Symbol('target-policy-self'),
     Children: Symbol('target-policy-children'),
