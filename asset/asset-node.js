@@ -1,5 +1,6 @@
-import { Image } from "../graphic/image.js";
 import { AssetObject } from "./asset-object.js";
+import { Audio } from "../sound/audio.js";
+import { Image } from "../graphic/image.js";
 
 const REFERENCE_STRING_FORMAT = /^[^@]*@(\/*([^*./<>?:"|\\/]+\/)*[^*./<>?:"|\\/]+[.][^*./<>?:"|\\/]+)(:[^.]+([.][^.]+)*)?$/;
 const USER_DEFINED_CLASS_PREFIX_FORMAT = /^((?:(?:[^*./<>?:"|\\/]+|[.][.]?)\/)*[^*./<>?:"|\\/]+[.][^*./<>?:"|\\/]+):([a-zA-Z_]\w*)$/;
