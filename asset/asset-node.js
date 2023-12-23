@@ -193,6 +193,9 @@ export class AssetNode extends AssetObject {
         const extension = path.split('.').pop();
 
         switch (extension) {
+            case 'mp3':
+            case 'wav':
+                return await this.#loadAudioFromPath(path);
             case 'png':
                 return await this.#loadImageFromPath(path);
             case 'json':
@@ -203,6 +206,12 @@ export class AssetNode extends AssetObject {
             default:
                 throw `not supported file type: ${path}`;
         }
+    }
+
+    async #loadAudioFromPath(path) {
+        const audio = new Audio({ source: path });
+        await audio.loading;
+        return audio;
     }
 
     async #loadImageFromPath(path) {
