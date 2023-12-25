@@ -21,22 +21,22 @@ export class Progress {
     }
 
     update(deltaTime, ...args) {
-        if (this.value < 1) {
-            this.value += deltaTime * this.speed;
+        if (this.loop === false && this.value === 1) { return }
 
-            if (this.value >= 1) {
-                if (this.loop) {
-                    const count = Math.trunc(this.value);
-                    this.value -= count;
+        this.value += deltaTime * this.speed;
 
-                    for (let i = 0; i < count; i++) {
-                        this.events.emit('exceed', ...args);
-                    }
+        if (this.value >= 1) {
+            if (this.loop) {
+                const count = Math.trunc(this.value);
+                this.value -= count;
+
+                for (let i = 0; i < count; i++) {
+                    this.events.emit('exceed', ...args);
                 }
-                else {
-                    this.value = 1;
-                    this.events.emit('finish', ...args);
-                }
+            }
+            else {
+                this.value = 1;
+                this.events.emit('finish', ...args);
             }
         }
     }
