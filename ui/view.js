@@ -221,7 +221,6 @@ export class View {
         }
         else if (this._position[0] === Position.Center) {
             this._realPosition[0] = Math.floor((parentWidth - this._realSize[0]) / 2);
-            // console.log(this._realSize[0], this._realPosition[0]);
         }
         else if (this._position[0] === Position.End) {
             this._realPosition[0] = parentWidth - this._realSize[0];
@@ -311,8 +310,6 @@ export class View {
         let propagatingEvents = [];
 
         for (const event of events) {
-            if (event.handled) { continue }
-
             if (event.type.startsWith('mouse')) {
                 const containsMousePosition = area.contains(event.position);
 
@@ -323,6 +320,8 @@ export class View {
                 }
             }
             else {
+                if (event.handled) { continue }
+
                 propagatingEvents.push(event);
             }
         }
@@ -337,8 +336,8 @@ export class View {
             this.onHandle(events);
 
             for (const event of events) {
-                if (event.type !== 'mousemove' && event.handled) { continue }
                 if (event.type === 'mousedown') {
+                    if (event.handled) { continue }
                     if (propagatingEvents.includes(event)) {
                         this.events.emit('mousedown', event);
                         event.handled = true;
@@ -369,11 +368,13 @@ export class View {
                 else if (event.type === 'mouseup') {
                     const screenPosition = event.position;
                     if (area.contains(screenPosition)) {
-                        this.events.emit('mouseup', event);
-                        event.handled = true;
+                        if (!event.handled) {
+                            this.events.emit('mouseup', event);
+                            event.handled = true;
 
-                        if (this._mouseDown) {
-                            this.events.emit('click', event);
+                            if (this._mouseDown) {
+                                this.events.emit('click', event);
+                            }
                         }
                     }
 
