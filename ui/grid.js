@@ -33,7 +33,8 @@ export class Grid extends View {
                 this._realSize[1] = 0;
             }
             else {
-                this._realSize[1] = (this.itemSize[1] + this.itemPadding) * Math.min(this._objects.length, this.rows) - this.itemPadding;
+                const rows = this.rows ?? Math.ceil(this._objects.length / this.columns);
+                this._realSize[1] = (this.itemSize[1] + this.itemPadding) * Math.min(this._objects.length, rows) - this.itemPadding;
             }
 
             this._realSize[1] += this.padding * 2;
@@ -44,7 +45,8 @@ export class Grid extends View {
         const itemSize = this.itemSize;
 
         let cumulativeSize = [0, 0];
-        for (let r = 0, i = 0; r < this.rows && i < this._objects.length; r++) {
+        const rows = this.rows ?? Math.ceil(this._objects.length / this.columns);
+        for (let r = 0, i = 0; r < rows && i < this._objects.length; r++) {
             for (let c = 0; c < this.columns && i < this._objects.length; c++, i++) {
                 const object = this._objects[i];
 
