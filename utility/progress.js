@@ -52,4 +52,16 @@ export class Progress {
         this.events.dispose();
         this.events = null;
     }
+
+    toJSON() {
+        return {
+            value: this.value,
+            speed: this.speed,
+            loop: this.loop,
+        };
+    }
+
+    static fromJSON(json) {
+        return new this(json);
+    }
 }
