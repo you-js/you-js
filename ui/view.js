@@ -24,6 +24,8 @@ export class View {
     static Size = Size;
     static TargetPolicy = TargetPolicy;
 
+    #rendering = TargetPolicy.Both;
+
     _objects = [];
     _position = [0, 0];
     _size = [0, 0];
@@ -58,6 +60,7 @@ export class View {
         this.position = position;
         this.size = size;
 
+        this.#rendering = rendering !== TargetPolicy.Ignore ? rendering : this.#rendering;
         this.parent = null;
         this._mouseDown = false;
         this._mouseIn = false;
@@ -442,4 +445,22 @@ export class View {
     }
 
     onRender(context, screenSize) {}
+
+    show() {
+        this.rendering = this.#rendering;
+    }
+
+    hide() {
+        this.#rendering = this.rendering;
+        this.rendering = TargetPolicy.Ignore;
+
+        this._resetStates();
+    }
+
+    _resetStates() {
+        this._mouseDown = false;
+        this._mouseIn = false;
+
+        this._objects.forEach(object => object._resetStates());
+    }
 }
