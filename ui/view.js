@@ -1,4 +1,7 @@
 import { EventEmitter } from '../utility/event.js';
+import { RenderingPolicy } from "./rendering-policy.js";
+import { ViewEventHandler } from "./view-event-handler.js";
+import { ViewRenderer } from "./view-renderer.js";
 
 const Position = {
     Start:  Symbol('position-start'),
@@ -24,6 +27,8 @@ export class View {
     static Size = Size;
     static TargetPolicy = TargetPolicy;
 
+    #rendering = TargetPolicy.Both;
+
     _objects = [];
     _position = [0, 0];
     _size = [0, 0];
@@ -36,6 +41,7 @@ export class View {
         eventHandling=TargetPolicy.Both,
         rendering=TargetPolicy.Both,
         updating=TargetPolicy.Both,
+        renderingPolicy=null,
         events={},
         position=[0, 0], size=[0, 0],
         backgroundColor=null,
@@ -58,6 +64,15 @@ export class View {
         this.position = position;
         this.size = size;
 
+        this.eventHandler = new ViewEventHandler({ events: this.events });
+        this.renderingPolicy = new RenderingPolicy();
+        this.renderer = new ViewRenderer({
+            view: this,
+            backgroundColor,
+            borderColor, borderWidth,
+            clipping,
+        });
+        this.#rendering = rendering;
         this.parent = null;
         this._mouseDown = false;
         this._mouseIn = false;
@@ -305,83 +320,7 @@ export class View {
     handle(events) {
         if (this.eventHandling === TargetPolicy.Ignore || this.rendering === TargetPolicy.Ignore) { return }
 
-        const area = this.areaInGlobal;
-
-        let propagatingEvents = [];
-
-        for (const event of events) {
-            if (event.type.startsWith('mouse')) {
-                const containsMousePosition = area.contains(event.position);
-
-                if (event.type === 'mouseup' ||
-                    event.type === 'mousemove' && this._mouseIn ||
-                    containsMousePosition) {
-                    propagatingEvents.push(event);
-                }
-            }
-            else {
-                if (event.handled) { continue }
-
-                propagatingEvents.push(event);
-            }
-        }
-
-        if (!(this.eventHandling === TargetPolicy.Self || this.rendering === TargetPolicy.Self)) {
-            if (propagatingEvents.length > 0) {
-                [...this._objects].reverse().forEach(object => object.handle(propagatingEvents));
-            }
-        }
-
-        if (!(this.eventHandling === TargetPolicy.Children || this.rendering === TargetPolicy.Children)) {
-            this.onHandle(events);
-
-            for (const event of events) {
-                if (event.type === 'mousedown') {
-                    if (event.handled) { continue }
-                    if (propagatingEvents.includes(event)) {
-                        this.events.emit('mousedown', event);
-                        event.handled = true;
-
-                        this._mouseDown = true;
-                    }
-                }
-                else if (event.type === 'mousemove') {
-                    const screenPosition = event.position;
-                    if (area.contains(screenPosition)) {
-                        if (!event.handled) {
-                            this.events.emit('mousemove', event);
-                            event.handled = true;
-                        }
-
-                        if (!this._mouseIn) {
-                            this.events.emit('mousein', event);
-                            this._mouseIn = true;
-                        }
-                    }
-                    else {
-                        if (this._mouseIn) {
-                            this.events.emit('mouseout', event);
-                            this._mouseIn = false;
-                        }
-                    }
-                }
-                else if (event.type === 'mouseup') {
-                    const screenPosition = event.position;
-                    if (area.contains(screenPosition)) {
-                        if (!event.handled) {
-                            this.events.emit('mouseup', event);
-                            event.handled = true;
-
-                            if (this._mouseDown) {
-                                this.events.emit('click', event);
-                            }
-                        }
-                    }
-
-                    this._mouseDown = false;
-                }
-            }
-        }
+        this.eventHandler.handle(events, { handling: this.eventHandling, rendering: this.rendering }, this.areaInGlobal, this._objects);
     }
 
     onHandle(events) {}
@@ -406,40 +345,19 @@ export class View {
         if (this._realSize[0] == null || this._realSize[1] == null) { return }
         if (this._realSize[0] === 0 || this._realSize[1] === 0) { return }
 
-        context.save();
-        context.translate(...this._realPosition.map(Math.floor));
-
-        context.beginPath();
-        context.rect(0, 0, ...this._realSize.map(Math.floor));
-        context.clip();
-
-        if (this.rendering !== TargetPolicy.Children) {
-            if (this.backgroundColor) {
-                context.fillStyle = this.backgroundColor;
-                context.fillRect(0, 0, ...this._realSize.map(Math.floor));
-            }
-
-            this.onRender(context, screenSize);
-            this.events.emit('render', context, screenSize);
-        }
-
-        if (this.rendering !== TargetPolicy.Self) {
-            context.save();
-            context.translate(Math.floor(this.padding), Math.floor(this.padding));
-            this._objects.forEach(object => object.render(context, screenSize));
-            context.restore();
-        }
-
-        if (this.rendering !== TargetPolicy.Children) {
-            if (this.borderColor && this.borderWidth > 0) {
-                context.lineWidth = this.borderWidth;
-                context.strokeStyle = this.borderColor;
-                context.strokeRect(.5, .5, ...this._realSize.sub(1));
-            }
-        }
-
-        context.restore();
+        this.renderer.render(context, this.rendering, this._realPosition.map(Math.floor), this._realSize.map(Math.floor), this.padding, this._objects);
     }
 
     onRender(context, screenSize) {}
+
+    show() {
+        this.rendering = this.#rendering;
+    }
+
+    hide() {
+        this.#rendering = this.rendering;
+        this.rendering = TargetPolicy.Ignore;
+
+        this.eventHandler.resetStates(this._objects);
+    }
 }
