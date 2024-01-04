@@ -95,20 +95,12 @@ export class Screen {
     set size(value) {
         this.#size.splice(0, 2, ...value);
 
-        const states = {};
-
-        for (const key in this.context) {
-            if (key === 'canvas') { continue }
-            else if (typeof this.context[key] === 'function') { continue }
-            states[key] = this.context[key];
-        }
+        const imageSmoothingEnabled = this.context.imageSmoothingEnabled;
 
         this.canvas.width = value[0];
         this.canvas.height = value[1];
 
-        for (const key in states) {
-            this.context[key] = states[key];
-        }
+        this.context.imageSmoothingEnabled = imageSmoothingEnabled;
     }
 
     get width() {
