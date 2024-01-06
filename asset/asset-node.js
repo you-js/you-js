@@ -86,9 +86,11 @@ export class AssetNode extends AssetObject {
 
         const accessors = postfix?.split('.') ?? [];
 
-        if (prefix === 'create') {
+        if (prefix === 'module') {
             const path = this.#getPath('app', referencePath);
-            const data = await this.#loadDataFromPath(path);
+            const module = await import(path);
+
+            const data = accessors.reduce((object, accessor) => object[accessor], module);
 
             return data;
         }
