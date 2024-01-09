@@ -29,6 +29,7 @@ class Stack extends View {
         for (let i = 0; i < this._objects.length; i++) {
             const object = this._objects[i];
 
+            object._position[stackDirectionIndex] = cumulativeStackDirectionSize;
             object._realPosition[stackDirectionIndex] = cumulativeStackDirectionSize;
 
             cumulativeStackDirectionSize += object._realSize[stackDirectionIndex] + this.itemPadding;
