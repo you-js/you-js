@@ -447,10 +447,14 @@ export class View {
     onRender(context, screenSize) {}
 
     show() {
+        if (this.rendering !== TargetPolicy.Ignore) { return }
+
         this.rendering = this.#rendering;
     }
 
     hide() {
+        if (this.rendering === TargetPolicy.Ignore) { return }
+
         this.#rendering = this.rendering;
         this.rendering = TargetPolicy.Ignore;
 
