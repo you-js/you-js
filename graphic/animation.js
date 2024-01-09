@@ -61,10 +61,8 @@ export class Animation extends Renderable {
 
             if (this.#currentTime >= this.#duration) {
                 if (this.loop) {
-                    const count = Math.trunc(this.#currentTime);
-                    this.#currentTime -= count;
-
-                    for (let i = 0; i < count; i++) {
+                    while (this.#currentTime >= this.#duration) {
+                        this.#currentTime = this.#currentTime - this.#duration;
                         this.events.emit('exceed', ...args);
                     }
                 }
