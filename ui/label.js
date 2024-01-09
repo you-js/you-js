@@ -86,6 +86,8 @@ export class Label extends View {
                 context.fillRect(0, 0, ...this._realSize.map(Math.floor));
             }
 
+            this.willRender(context, screenSize);
+
             context.font = this.font;
             context.fillStyle = this.fontColor;
             context.textAlign = this.textAlign;
@@ -98,9 +100,6 @@ export class Label extends View {
             align.splice(0, 2, ...align.add(this.#getOffset()));
 
             context.fillText(this.text ?? '', ...align);
-
-            this.onRender(context, screenSize);
-            this.events.emit('render', context, screenSize);
         }
 
         if (this.rendering !== View.TargetPolicy.Self) {
@@ -111,6 +110,8 @@ export class Label extends View {
         }
 
         if (this.rendering !== View.TargetPolicy.Children) {
+            this.didRender(context, screenSize);
+
             if (this.borderColor && this.borderWidth > 0) {
                 context.lineWidth = this.borderWidth;
                 context.strokeStyle = this.borderColor;

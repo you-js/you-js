@@ -394,7 +394,6 @@ export class View {
 
         if (this.updating !== TargetPolicy.Children) {
             this.onUpdate(deltaTime);
-            this.events.emit('update', deltaTime);
         }
 
         if (this.updating !== TargetPolicy.Self) {
@@ -422,8 +421,7 @@ export class View {
                 context.fillRect(0, 0, ...this._realSize.map(Math.floor));
             }
 
-            this.onRender(context, screenSize);
-            this.events.emit('render', context, screenSize);
+            this.willRender(context, screenSize);
         }
 
         if (this.rendering !== TargetPolicy.Self) {
@@ -434,6 +432,8 @@ export class View {
         }
 
         if (this.rendering !== TargetPolicy.Children) {
+            this.didRender(context, screenSize);
+
             if (this.borderColor && this.borderWidth > 0) {
                 context.lineWidth = this.borderWidth;
                 context.strokeStyle = this.borderColor;
@@ -444,7 +444,8 @@ export class View {
         context.restore();
     }
 
-    onRender(context, screenSize) {}
+    willRender(context, screenSize) {}
+    didRender(context, screenSize) {}
 
     show() {
         if (this.rendering !== TargetPolicy.Ignore) { return }

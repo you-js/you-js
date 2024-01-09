@@ -41,10 +41,9 @@ export class Image extends View {
                 context.fillRect(0, 0, ...this._realSize.map(Math.floor));
             }
 
-            this.renderable?.render(context);
+            this.willRender(context, screenSize);
 
-            this.onRender(context, screenSize);
-            this.events.emit('render', context, screenSize);
+            this.renderable?.render(context);
         }
 
         if (this.rendering !== View.TargetPolicy.Self) {
@@ -55,6 +54,8 @@ export class Image extends View {
         }
 
         if (this.rendering !== View.TargetPolicy.Children) {
+            this.didRender(context, screenSize);
+
             if (this.borderColor && this.borderWidth > 0) {
                 context.lineWidth = this.borderWidth;
                 context.strokeStyle = this.borderColor;
