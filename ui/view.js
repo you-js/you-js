@@ -168,8 +168,17 @@ export class View {
             let end = null;
 
             for (const object of this._objects) {
-                if (end == null || end < (object._realPosition[0] ?? 0) + (object._realSize[0] ?? 0)) {
-                    end = (object._realPosition[0] ?? 0) + (object._realSize[0] ?? 0);
+                const x = (
+                    (
+                        object._position[0] == null ||
+                        typeof object._position[0] !== 'number'
+                    )
+                    ? 0
+                    : object._realPosition[0]
+                );
+
+                if (end == null || end < x + (object._realSize[0] ?? 0)) {
+                    end = x + (object._realSize[0] ?? 0);
                 }
             }
 
@@ -184,8 +193,17 @@ export class View {
             let end = null;
 
             for (const object of this._objects) {
-                if (end == null || end < object._realPosition[1] + (object._realSize[1] ?? 0)) {
-                    end = object._realPosition[1] + (object._realSize[1] ?? 0);
+                const y = (
+                    (
+                        object._position[1] == null ||
+                        typeof object._position[1] !== 'number'
+                    )
+                    ? 0
+                    : object._realPosition[1]
+                );
+
+                if (end == null || end < y + (object._realSize[1] ?? 0)) {
+                    end = y + (object._realSize[1] ?? 0);
                 }
             }
 
