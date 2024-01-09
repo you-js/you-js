@@ -170,7 +170,7 @@ export class View {
             for (const object of this._objects) {
                 const x = (
                     (
-                        object._position[0] == null ||
+                        object._realPosition[0] == null ||
                         typeof object._position[0] !== 'number'
                     )
                     ? 0
@@ -195,7 +195,7 @@ export class View {
             for (const object of this._objects) {
                 const y = (
                     (
-                        object._position[1] == null ||
+                        object._realPosition[1] == null ||
                         typeof object._position[1] !== 'number'
                     )
                     ? 0
