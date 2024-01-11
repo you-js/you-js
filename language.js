@@ -19,7 +19,7 @@ function selectLanguage(languageId) {
 }
 
 export function lang(strings, ...keys) {
-    const totalString = strings.slice(1).reduce((acc, cur, idx) => acc + cur + keys[idx], strings[0]);
+    const totalString = strings.slice(1).reduce((acc, cur, idx) => acc + keys[idx] + cur, strings[0]);
     const accessors = totalString.split('.');
 
     let string = languageMap.get(currentLanguageId);
