@@ -64,14 +64,15 @@ export class Sprite extends Renderable {
             sourceArea[3] * this.scale[1] * scale[1],
         ];
 
-        const destinationArea = [
-            position[0] - this.anchor[0] * scaledSize[0],
-            position[1] - this.anchor[1] * scaledSize[1],
-            scaledSize[0],
-            scaledSize[1],
-        ];
-
-        context.drawImage(this.sheet.raw, ...sourceArea, ...destinationArea);
+        context.save();
+        context.translate(...position);
+        context.translate(-this.anchor[0] * scaledSize[0], -this.anchor[1] * scaledSize[1]);
+        context.translate(.5 * scaledSize[0], .5 * scaledSize[1]);
+        context.scale(...this.scale);
+        context.scale(...scale);
+        context.translate(-.5 * sourceArea[2], -.5 * sourceArea[3]);
+        context.drawImage(this.sheet.raw, ...sourceArea, 0, 0, sourceArea[2], sourceArea[3]);
+        context.restore();
     }
 
     copy() {
