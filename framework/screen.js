@@ -131,6 +131,7 @@ export class Screen {
 		return new Screen({
 			canvas: document.createElement('canvas'),
 			size,
+            resizeType: ResizeType.Pack,
 		});
 	}
 }
