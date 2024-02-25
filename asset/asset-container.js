@@ -1,3 +1,4 @@
+import { AssetNode } from './asset-node.js';
 import { AssetObject } from "./asset-object.js";
 
 const CHILDREN = Symbol('children');
@@ -49,6 +50,27 @@ export class AssetContainer extends AssetObject {
     }
 
     addContainer(id, container) {
+        if (id in this) {
+            if (this[id] instanceof AssetNode) {
+                throw `Cannot add container with id "${id}" because it already exists as a node.`;
+            }
+
+            for (const childId in container[CHILDREN]) {
+                if (childId in this[id][CHILDREN]) {
+                    throw `Cannot add child with id "${id}" because it already exists.`;
+                }
+
+                if (container[CHILDREN][childId] instanceof AssetNode) {
+                    this[id].addNode(childId, container[CHILDREN][childId]);
+                }
+                else {
+                    this[id].addContainer(childId, container[CHILDREN][childId]);
+                }
+            }
+
+            return;
+        }
+
         Object.defineProperty(this, id, {
             value: container,
             enumerable: true,
