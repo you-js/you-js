@@ -1,124 +1,129 @@
 import { View } from "./view.js";
+import { ViewEvaluater } from "./view-evaluater.js";
+
+const Orientation = {
+    Horizontal: Symbol('horizontal'),
+    Vertical: Symbol('vertical'),
+};
 
 export class Grid extends View {
 
+    static Orientation = Orientation;
+
     constructor({
+        position=[0, 0],
+        size=[View.Size.Wrap, View.Size.Wrap],
         itemPadding=0,
         itemSize,
+        itemOrientation=Orientation.Horizontal,
         rows=1, columns=1,
         ...args
-    }={}) {
-        super(args);
+    }, ...children) {
+        super({
+            evaluater: null,
+            ...args,
+        }, ...children);
+
+        this.evaluater = new GridEvaluater({
+            position,
+            size,
+        });
 
         this.itemPadding = itemPadding;
         this.itemSize = itemSize;
-        this.rows = rows;
-        this.columns = columns;
-    }
+        this.itemOrientation = itemOrientation;
+        this.rows = rows == null ? null : Math.floor(Math.max(0, rows));
+        this.columns = columns == null ? null : Math.floor(Math.max(0, columns));
 
-    evaluateWrapSizeSelf() {
-        if (this._size[0] === View.Size.Wrap) {
-            if (this._objects.legnth <= 0) {
-                this._realSize[0] = 0;
-            }
-            else {
-                this._realSize[0] = (this.itemSize[0] + this.itemPadding) * Math.min(this._objects.length, this.columns) - this.itemPadding;
-            }
-
-            this._realSize[0] += this.padding * 2;
+        if (rows == null) {
+            this.itemOrientation = Orientation.Horizontal;
         }
-
-        if (this._size[1] === View.Size.Wrap) {
-            if (this._objects.legnth <= 0) {
-                this._realSize[1] = 0;
-            }
-            else {
-                const rows = this.rows ?? Math.ceil(this._objects.length / this.columns);
-                this._realSize[1] = (this.itemSize[1] + this.itemPadding) * Math.min(this._objects.length, rows) - this.itemPadding;
-            }
-
-            this._realSize[1] += this.padding * 2;
+        else if (columns == null) {
+            this.itemOrientation = Orientation.Vertical;
         }
     }
+}
 
-    #align() {
-        const itemSize = this.itemSize;
+class GridEvaluater extends ViewEvaluater {
+
+    evaluateWrapSizeSelf(view) {
+        if (view.rows == null && view.columns == null) { return }
+
+        this.#align(view);
+
+        if (view.evaluater.size[0] === View.Size.Wrap) {
+            if (view.container._children.legnth <= 0) {
+                view.evaluater.actualSize[0] = 0;
+            }
+            else {
+                const columns = view.columns ?? Math.ceil(view.container._children.length / view.rows);
+
+                view.evaluater.actualSize[0] = (view.itemSize[0] + view.itemPadding) * Math.min(view.container._children.length, columns) - view.itemPadding;
+                view.evaluater.actualSize[0] += view.padding * 2;
+            }
+        }
+
+        if (view.evaluater.size[1] === View.Size.Wrap) {
+            if (view.container._children.legnth <= 0) {
+                view.evaluater.actualSize[1] = 0;
+            }
+            else {
+                const rows = view.rows ?? Math.ceil(view.container._children.length / view.columns);
+
+                view.evaluater.actualSize[1] = (view.itemSize[1] + view.itemPadding) * Math.min(view.container._children.length, rows) - view.itemPadding;
+                view.evaluater.actualSize[1] += view.padding * 2;
+            }
+        }
+    }
+
+    #align(view) {
+        const gridOrientationIndex = this.#getGridOrientationIndex(view);
+        const itemSize = view.itemSize;
 
         let cumulativeSize = [0, 0];
-        const rows = this.rows ?? Math.ceil(this._objects.length / this.columns);
-        for (let r = 0, i = 0; r < rows && i < this._objects.length; r++) {
-            for (let c = 0; c < this.columns && i < this._objects.length; c++, i++) {
-                const object = this._objects[i];
+
+        const rows = view.rows ?? Math.ceil(view.container._children.length / view.columns);
+        const columns = view.columns ?? Math.ceil(view.container._children.length / view.rows);
+
+        const counterOrientationLength = gridOrientationIndex === 0 ? rows : columns;
+        const orientationLength = gridOrientationIndex === 0 ? columns : rows;
+
+        for (let co = 0, i = 0; co < counterOrientationLength && i < view.container._children.length; co++) {
+            for (let o = 0; o < orientationLength && i < view.container._children.length; o++, i++) {
+                const object = view.container._children[i];
 
                 const objectPosition = [
                     Math.floor(cumulativeSize[0]),
                     Math.floor(cumulativeSize[1]),
                 ];
 
-                object._position.splice(0, 2, ...objectPosition);
-                object._realPosition.splice(0, 2, ...objectPosition);
+                object.evaluater.position.splice(0, 2, ...objectPosition);
+                object.evaluater.actualPosition.splice(0, 2, ...objectPosition);
 
                 const objectSize = [
                     Math.floor(cumulativeSize[0] + itemSize[0]) - Math.floor(cumulativeSize[0]),
                     Math.floor(cumulativeSize[1] + itemSize[1]) - Math.floor(cumulativeSize[1]),
                 ];
 
-                object._size.splice(0, 2, ...objectSize);
-                object._realSize.splice(0, 2, ...objectSize);
+                object.evaluater.size.splice(0, 2, ...objectSize);
+                object.evaluater.actualSize.splice(0, 2, ...objectSize);
 
-                cumulativeSize[0] += itemSize[0] + this.itemPadding;
+                cumulativeSize[gridOrientationIndex] += itemSize[gridOrientationIndex] + view.itemPadding;
             }
 
-            cumulativeSize[0] = 0;
-            cumulativeSize[1] += itemSize[1] + this.itemPadding;
+            cumulativeSize[gridOrientationIndex] = 0;
+            cumulativeSize[1 - gridOrientationIndex] += itemSize[1 - gridOrientationIndex] + view.itemPadding;
         }
     }
 
-    get objects() { return this._objects }
-    set objects(value) {
-        if (!(value instanceof Array)) {
-            throw `Expected an array, but got ${value}`;
-        }
-
-        this._objects.forEach(object => object.parent = null);
-        this._objects.splice(0, this._objects.length, ...value);
-        if (this.parent) {
-            this.#align();
-            this.evaluate();
-        }
-        this._objects.forEach(object => object.parent = this);
-    }
-
-    add(object) {
-        this._objects.push(object);
-        object.parent = this;
-
-        if (this.parent) {
-            this.#align();
-            this.evaluate();
-        }
-    }
-
-    remove(object) {
-        const index = this._objects.indexOf(object);
-        if (index >= 0) {
-            this._objects.splice(index, 1);
-            object.parent = null;
-
-            if (this.parent) {
-                this.#align();
-                this.evaluate();
-            }
-        }
-    }
-
-    create() {
-        this.onCreate();
-
-        this.#align();
-
-        for (const object of this._objects) {
-            object.create();
+    #getGridOrientationIndex(view) {
+        switch (view.itemOrientation) {
+            case Orientation.Horizontal:
+                return 0;
+            case Orientation.Vertical:
+                return 1;
+            default:
+                throw 'NotImplementedError';
         }
     }
 }

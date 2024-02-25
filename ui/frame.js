@@ -2,33 +2,27 @@ import { View } from "./view.js";
 
 export class Frame extends View {
 
-    view = null;
+    _view = null;
 
     create() {
         this.onCreate();
 
-        for (const object of this._objects) {
-            object.create();
+        for (const view of this.container._children) {
+            view.create();
         }
 
-        for (const object of this._objects) {
-            object.rendering = View.TargetPolicy.Ignore;
+        for (const view of this.container._children) {
+            view.hide();
         }
 
-        if (this._objects.length > 0) {
-            this.show(this._objects[0].name);
+        if (this.container._children.length > 0) {
+            this.showChildView(this.container._children[0].name);
         }
     }
 
-    show(name) {
-        if (this.view) {
-            this.view.rendering = View.TargetPolicy.Ignore;
-        }
-
-        this.view = this.findByName(name);
-
-        if (this.view) {
-            this.view.rendering = View.TargetPolicy.Both;
-        }
+    showChildView(name) {
+        this._view?.hide();
+        this._view = this.findViewByName(name);
+        this._view?.show();
     }
 }

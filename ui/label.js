@@ -1,4 +1,9 @@
 import { View } from './view.js';
+import { EventHandlingPolicy } from "./event-handling-policy.js";
+import { UpdatingPolicy } from "./updating-policy.js";
+import { RenderingPolicy } from "./rendering-policy.js";
+import { ViewRenderer } from "./view-renderer.js";
+import { ViewEvaluater } from "./view-evaluater.js";
 
 const HORIZONTAL_ALIGN = {
     left: 0,
@@ -19,104 +24,116 @@ export class Label extends View {
     static textAlign = 'left';
     static textBaseline = 'top';
 
-    #textMetrics = null;
-
     constructor({
+        position=[0, 0],
+        size=[View.Size.Wrap, View.Size.Wrap],
         text='',
         font,
         fontColor,
         textAlign,
         textBaseline,
-        alpha=1,
         ...args
-    }={}) {
+    }, ...children) {
         super({
-            eventHandling: View.TargetPolicy.Ignore,
-            rendering: View.TargetPolicy.Self,
-            updating: View.TargetPolicy.Ignore,
+            eventHandlingPolicy: new EventHandlingPolicy({ eventHandling: false, targetPolicy: View.TargetPolicy.Self }),
+            updatingPolicy: new UpdatingPolicy({ updating: false, targetPolicy: View.TargetPolicy.Self }),
+            renderingPolicy: new RenderingPolicy({ rendering: true, targetPolicy: View.TargetPolicy.Self }),
+            renderer: null,
+            evaluater: null,
             ...args
+        }, ...children);
+
+        this.measurer = new Measurer();
+
+        this.renderer = new LabelRenderer({
+            ...args,
+            text,
+            font,
+            fontColor,
+            textAlign,
+            textBaseline,
+            measurer: this.measurer,
         });
 
-        this.text = text;
-        this.font = font ?? this.constructor.font;
-        this.fontColor = fontColor ?? this.constructor.fontColor;
-        this.textAlign = textAlign ?? this.constructor.textAlign;
-        this.textBaseline = textBaseline ?? this.constructor.textBaseline;
-        this.alpha = alpha;
+        this.evaluater = new LabelEvaluater({
+            position,
+            size,
+        });
     }
 
-    evaluateWrapSizeSelf() {
-        this.#textMetrics = this.#measureText(this.text);
+    get text() { return this.renderer.text }
+    set text(value) { this.renderer.text = value }
 
-        if (this._size[0] === View.Size.Wrap) {
-            this._realSize[0] = Math.ceil(this.#textMetrics.actualBoundingBoxLeft + this.#textMetrics.actualBoundingBoxRight + this.padding * 2);
-        }
+    get font() { return this.renderer.font }
+    set font(value) { this.renderer.font = value }
 
-        if (this._size[1] === View.Size.Wrap) {
-            this._realSize[1] = Math.ceil(this.#textMetrics.actualBoundingBoxAscent + this.#textMetrics.actualBoundingBoxDescent + this.padding * 2);
-        }
-    }
+    get fontColor() { return this.renderer.fontColor }
+    set fontColor(value) { this.renderer.fontColor = value }
 
-    #measureText(text) {
+    get textAlign() { return this.renderer.textAlign }
+    set textAlign(value) { this.renderer.textAlign = value }
+
+    get textBaseline() { return this.renderer.textBaseline }
+    set textBaseline(value) { this.renderer.textBaseline = value }
+}
+
+class Measurer {
+
+    textMetrics = null;
+
+    measure(text, font, textAlign, textBaseline) {
         const context = globalThis.canvas.getContext('2d');
-        context.font = this.font;
-        context.textAlign = this.textAlign;
-        context.textBaseline = this.textBaseline;
-        const metrics = context.measureText(text);
+
+        context.font = font;
+        context.textAlign = textAlign;
+        context.textBaseline = textBaseline;
+
+        const metrics = this.textMetrics = context.measureText(text);
+
         return metrics;
     }
+}
 
-    render(context, screenSize) {
-        if (this.rendering === View.TargetPolicy.Ignore) { return }
-        if (this._realSize[0] == null || this._realSize[1] == null) { return }
-        if (this._realSize[0] === 0 || this._realSize[1] === 0) { return }
+class LabelRenderer extends ViewRenderer {
+
+    constructor({
+        text,
+        font,
+        fontColor,
+        textAlign,
+        textBaseline,
+        measurer,
+        ...args
+    }={}) {
+        super(args);
+
+        this.text = text ?? Label.text;
+        this.font = font ?? Label.font;
+        this.fontColor = fontColor ?? Label.fontColor;
+        this.textAlign = textAlign ?? Label.textAlign;
+        this.textBaseline = textBaseline ?? Label.textBaseline;
+
+        this.measurer = measurer;
+    }
+
+    _renderSelf(context, screenSize, view) {
+        if (this.text == null || this.text === '') { return }
 
         context.save();
 
-        context.globalAlpha = this.alpha;
-        context.translate(...this._realPosition.map(Math.floor));
+        context.font = this.font;
+        context.fillStyle = this.fontColor;
+        context.textAlign = this.textAlign;
+        context.textBaseline = this.textBaseline;
 
-        context.beginPath();
-        context.rect(0, 0, ...this._realSize.map(Math.floor));
-        context.clip();
+        const offset = this.#getOffset();
+        const align = [
+            HORIZONTAL_ALIGN[this.textAlign] * (view.evaluater.actualSize[0] - view.padding * 2),
+            VERTICAL_ALIGN[this.textBaseline] * (view.evaluater.actualSize[1] - view.padding * 2),
+        ].add(offset)
+        .map(Math.floor);
 
-        if (this.rendering !== View.TargetPolicy.Children) {
-            if (this.backgroundColor) {
-                context.fillStyle = this.backgroundColor;
-                context.fillRect(0, 0, ...this._realSize.map(Math.floor));
-            }
-
-            context.font = this.font;
-            context.fillStyle = this.fontColor;
-            context.textAlign = this.textAlign;
-            context.textBaseline = this.textBaseline;
-            const align = [
-                this.padding + HORIZONTAL_ALIGN[this.textAlign] * (this._realSize[0] - this.padding * 2),
-                this.padding + VERTICAL_ALIGN[this.textBaseline] * (this._realSize[1] - this.padding * 2),
-            ].map(Math.floor);
-
-            align.splice(0, 2, ...align.add(this.#getOffset()));
-
-            context.fillText(this.text ?? '', ...align);
-
-            this.onRender(context, screenSize);
-            this.events.emit('render', context, screenSize);
-        }
-
-        if (this.rendering !== View.TargetPolicy.Self) {
-            context.save();
-            context.translate(Math.floor(this.padding), Math.floor(this.padding));
-            this._objects.forEach(object => object.render(context, screenSize));
-            context.restore();
-        }
-
-        if (this.rendering !== View.TargetPolicy.Children) {
-            if (this.borderColor && this.borderWidth > 0) {
-                context.lineWidth = this.borderWidth;
-                context.strokeStyle = this.borderColor;
-                context.strokeRect(.5, .5, ...this._realSize.add([-1, -1]));
-            }
-        }
+        context.fillText(this.text, ...align);
 
         context.restore();
     }
@@ -124,26 +141,43 @@ export class Label extends View {
     #getOffset() {
         const offsets = [];
 
+        const textMetrics = this.measurer.textMetrics;
+
         if (this.textAlign === 'left') {
-            offsets[0] = this.#textMetrics.actualBoundingBoxLeft;
+            offsets[0] = textMetrics.actualBoundingBoxLeft;
         }
         else if (this.textAlign === 'center') {
-            offsets[0] = (this.#textMetrics.actualBoundingBoxLeft - this.#textMetrics.actualBoundingBoxRight) / 2;
+            offsets[0] = (textMetrics.actualBoundingBoxLeft - textMetrics.actualBoundingBoxRight) / 2;
         }
         else if (this.textAlign === 'right') {
-            offsets[0] = -this.#textMetrics.actualBoundingBoxRight;
+            offsets[0] = -textMetrics.actualBoundingBoxRight;
         }
 
         if (this.textBaseline === 'top') {
-            offsets[1] = this.#textMetrics.actualBoundingBoxAscent;
+            offsets[1] = textMetrics.actualBoundingBoxAscent;
         }
         else if (this.textBaseline === 'middle') {
-            offsets[1] = (this.#textMetrics.actualBoundingBoxAscent - this.#textMetrics.actualBoundingBoxDescent) / 2;
+            offsets[1] = (textMetrics.actualBoundingBoxAscent - textMetrics.actualBoundingBoxDescent) / 2;
         }
         else if (this.textBaseline === 'bottom') {
-            offsets[1] = -this.#textMetrics.actualBoundingBoxDescent;
+            offsets[1] = -textMetrics.actualBoundingBoxDescent;
         }
 
         return offsets;
+    }
+}
+
+class LabelEvaluater extends ViewEvaluater {
+
+    evaluateWrapSizeSelf(view) {
+        const textMetrics = view.measurer.measure(view.text, view.font, view.textAlign, view.textBaseline);
+
+        if (this.size[0] === View.Size.Wrap) {
+            this.actualSize[0] = Math.ceil(textMetrics.actualBoundingBoxLeft + textMetrics.actualBoundingBoxRight + view.padding * 2);
+        }
+
+        if (this.size[1] === View.Size.Wrap) {
+            this.actualSize[1] = Math.ceil(textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent + view.padding * 2);
+        }
     }
 }

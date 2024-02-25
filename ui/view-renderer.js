@@ -2,51 +2,74 @@ import { View } from "./view.js";
 
 export class ViewRenderer {
 
-    /**
-     * @param {object} args
-     * @param {?string} args.backgroundColor
-     * @param {?string} args.borderColor
-     * @param {number} args.borderWidth
-     * @param {boolean} args.clipping
-     */
     constructor({
-        view,
         backgroundColor=null,
         borderColor=null, borderWidth=1,
         clipping=true,
+        alpha,
     }) {
-        this.view = view;
         this.backgroundColor = backgroundColor;
         this.borderColor = borderColor;
         this.borderWidth = borderWidth;
         this.clipping = clipping;
+        this.alpha = alpha;
     }
 
-    render(context, renderingPolicy, position, size, padding, children) {
+    render(context, screenSize, view) {
+        if (view.renderingPolicy.rendering === false) { return }
+        if (view.evaluater.actualSize[0] == null || view.evaluater.actualSize[1] == null) { return }
+        if (this.alpha === 0) { return }
+
+        this._render(context, screenSize, view);
+    }
+
+    _render(context, screenSize, view) {
+        const quantizedSize = view.evaluater.actualSize.map(Math.floor);
+
+        if (quantizedSize[0] === 0 || quantizedSize[1] === 0) { return }
+
+        const quantizedPosition = view.evaluater.actualPosition.map(Math.floor);
+        const quantizedPadding = Math.floor(view.padding);
+
+        const isRenderingSelf = (
+            view.renderingPolicy.targetPolicy === View.TargetPolicy.Self ||
+            view.renderingPolicy.targetPolicy === View.TargetPolicy.Both
+        );
+
+        const isRenderingChildren = (
+            view.renderingPolicy.targetPolicy === View.TargetPolicy.Children ||
+            view.renderingPolicy.targetPolicy === View.TargetPolicy.Both
+        );
+
         context.save();
-        context.translate(...position);
 
-        this._clip(context, size);
+        if (this.alpha != null) {
+            context.globalAlpha = this.alpha;
+        }
 
-        if (renderingPolicy !== View.TargetPolicy.Children) {
-            this._renderBackground(context, size);
+        context.translate(...quantizedPosition);
+
+        this._clip(context, quantizedSize);
+
+        if (isRenderingSelf) {
+            this._renderBackground(context, quantizedSize);
         }
 
         context.save();
-        context.translate(Math.floor(padding), Math.floor(padding));
+        context.translate(quantizedPadding, quantizedPadding);
 
-        if (renderingPolicy !== View.TargetPolicy.Children) {
-            this._renderSelf(context);
+        if (isRenderingSelf) {
+            this._renderSelf(context, screenSize, view);
         }
 
-        if (renderingPolicy !== View.TargetPolicy.Self) {
-            this._renderChildren(context, children);
+        if (isRenderingChildren) {
+            this._renderChildren(context, screenSize, view);
         }
 
         context.restore();
 
-        if (renderingPolicy !== View.TargetPolicy.Children) {
-            this._renderBorder(context, size);
+        if (isRenderingSelf) {
+            this._renderBorder(context, quantizedSize);
         }
 
         context.restore();
@@ -67,10 +90,10 @@ export class ViewRenderer {
         }
     }
 
-    _renderSelf(context) {}
+    _renderSelf(context, screenSize, view) {}
 
-    _renderChildren(context, children) {
-        children.forEach(child => child.render(context));
+    _renderChildren(context, screenSize, view) {
+        view.container._children.forEach(child => child.render(context, screenSize));
     }
 
     _renderBorder(context, size) {

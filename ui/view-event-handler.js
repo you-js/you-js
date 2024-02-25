@@ -7,40 +7,44 @@ export class ViewEventHandler {
     }) {
         this.events = events;
 
+        this.mouseDown = false;
         this.mouseIn = false;
     }
 
-    handle(events, policy, globalArea, children) {
-        this._handleChildren(events, policy, globalArea, children);
-        this._handleSelf(events, policy, globalArea);
+    handle(events, view) {
+        if (view.eventHandlingPolicy.eventHandling === false) { return }
+        if (view.renderingPolicy.rendering === false) { return }
+
+        this._handleChildren(events, view);
+        this._handleSelf(events, view);
     }
 
-    _handleChildren(events, policy, globalArea, children) {
+    _handleChildren(events, view) {
         const isRenderingChildren = (
-            policy.rendering === View.TargetPolicy.Children ||
-            policy.rendering === View.TargetPolicy.Both
+            view.renderingPolicy.targetPolicy === View.TargetPolicy.Children ||
+            view.renderingPolicy.targetPolicy === View.TargetPolicy.Both
         );
-
-        if (!isRenderingChildren) { return }
 
         const isHandlingChildren = (
-            policy.handling === View.TargetPolicy.Children ||
-            policy.handling === View.TargetPolicy.Both
+            view.eventHandlingPolicy.targetPolicy === View.TargetPolicy.Children ||
+            view.eventHandlingPolicy.targetPolicy === View.TargetPolicy.Both
         );
-
-        if (!isHandlingChildren) { return }
 
         const propagatingEvents = [];
 
         for (const event of events) {
             if (event.type.startsWith('mouse')) {
-                const isMouseUp = event.type === 'mouseup';
-                const isMouseMoveIn = event.type === 'mousemove' && this.mouseIn;
-                const containsMousePosition = globalArea.contains(event.position);
+                if (!isRenderingChildren) { continue }
+                if (!isHandlingChildren) { continue }
 
-                if (isMouseUp || isMouseMoveIn || containsMousePosition) {
-                    propagatingEvents.push(event);
-                }
+                const isMouseUp = event.type === 'mouseup';
+                if (isMouseUp) { propagatingEvents.push(event); continue }
+
+                const isMouseMoveIn = event.type === 'mousemove' && this.mouseIn;
+                if (isMouseMoveIn) { propagatingEvents.push(event); continue }
+
+                const containsMousePosition = view.globalArea.contains(event.position);
+                if (containsMousePosition) { propagatingEvents.push(event) }
             }
             else {
                 if (event.handled) { continue }
@@ -50,46 +54,52 @@ export class ViewEventHandler {
         }
 
         if (propagatingEvents.length >= 1) {
-            for (let i = children.length - 1; i >= 0; i--) {
-                children[i].handle(propagatingEvents);
+            for (let i = view.container._children.length - 1; i >= 0; i--) {
+                view.container._children[i].handle(propagatingEvents);
             }
         }
     }
 
-    _handleSelf(events, policy, globalArea) {
+    _handleSelf(events, view) {
         const isRenderingSelf = (
-            policy.rendering === View.TargetPolicy.Self ||
-            policy.rendering === View.TargetPolicy.Both
+            view.renderingPolicy.targetPolicy === View.TargetPolicy.Self ||
+            view.renderingPolicy.targetPolicy === View.TargetPolicy.Both
         );
-
-        if (!isRenderingSelf) { return }
 
         const isHandlingSelf = (
-            policy.handling === View.TargetPolicy.Self ||
-            policy.handling === View.TargetPolicy.Both
+            view.eventHandlingPolicy.targetPolicy === View.TargetPolicy.Self ||
+            view.eventHandlingPolicy.targetPolicy === View.TargetPolicy.Both
         );
 
-        if (!isHandlingSelf) { return }
-
         for (const event of events) {
-            if (event.type === 'mousedown') {
-                this._handleMouseDown(event, globalArea);
+            if (event.type.startsWith('mouse')) {
+                if (!isRenderingSelf) { continue }
+                if (!isHandlingSelf) { continue }
+
+                if (event.type === 'mousedown') {
+                    this._handleMouseDown(event, view);
+                }
+                else if (event.type === 'mousemove') {
+                    this._handleMouseMove(event, view);
+                }
+                else if (event.type === 'mouseup') {
+                    this._handleMouseUp(event, view)
+                }
             }
-            else if (event.type === 'mousemove') {
-                this._handleMouseMove(event, globalArea);
-            }
-            else if (event.type === 'mouseup') {
-                this._handleMouseUp(event, globalArea)
+            else {
+                if (event.handled) { continue }
+
+                this.events.emit(event.type, event);
             }
         }
     }
 
-    _handleMouseDown(event, globalArea) {
+    _handleMouseDown(event, view) {
         if (event.handled) { return }
 
         const mousePosition = event.position;
 
-        if (globalArea.contains(mousePosition)) {
+        if (view.globalArea.contains(mousePosition)) {
             this.events.emit('mousedown', event);
             event.handled = true;
 
@@ -97,10 +107,10 @@ export class ViewEventHandler {
         }
     }
 
-    _handleMouseMove(event, globalArea) {
+    _handleMouseMove(event, view) {
         const mousePosition = event.position;
 
-        if (globalArea.contains(mousePosition)) {
+        if (view.globalArea.contains(mousePosition)) {
             if (!event.handled) {
                 this.events.emit('mousemove', event);
                 event.handled = true;
@@ -119,10 +129,10 @@ export class ViewEventHandler {
         }
     }
 
-    _handleMouseUp(event, globalArea) {
+    _handleMouseUp(event, view) {
         const mousePosition = event.position;
 
-        if (globalArea.contains(mousePosition)) {
+        if (view.globalArea.contains(mousePosition)) {
             if (!event.handled) {
                 this.events.emit('mouseup', event);
                 event.handled = true;
@@ -140,6 +150,6 @@ export class ViewEventHandler {
         this.mouseDown = false;
         this.mouseIn = false;
 
-        children.forEach(child => child.eventHandler.resetStates(child._objects));
+        children.forEach(child => child.eventHandler.resetStates(child.container._children));
     }
 }
