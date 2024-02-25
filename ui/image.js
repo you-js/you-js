@@ -1,65 +1,95 @@
 import { View } from './view.js';
+import { EventHandlingPolicy } from "./event-handling-policy.js";
+import { UpdatingPolicy } from "./updating-policy.js";
+import { RenderingPolicy } from "./rendering-policy.js";
+import { ViewRenderer } from "./view-renderer.js";
+
+const ImageRenderingStrategy = {
+    Stretch: 'stretch',
+    Center: 'center',
+    Tile: 'tile',
+};
 
 export class Image extends View {
 
+    static ImageRenderingStrategy = ImageRenderingStrategy;
+
     constructor({
-        renderable,
-        alpha=1,
+        imageRenderingStrategy=ImageRenderingStrategy.Stretch,
+        renderable=null,
+        renderableAlpha,
+        smoothing=true,
+        ...args
+    }, ...children) {
+        super({
+            eventHandlingPolicy: new EventHandlingPolicy({ eventHandling: false, targetPolicy: View.TargetPolicy.Self }),
+            updatingPolicy: new UpdatingPolicy({ updating: false, targetPolicy: View.TargetPolicy.Self }),
+            renderingPolicy: new ImageRenderingPolicy({ rendering: true, targetPolicy: View.TargetPolicy.Self, imageRenderingStrategy }),
+            renderer: null,
+            ...args,
+        }, ...children);
+
+        this.renderer = new ImageRenderer({
+            ...args,
+            renderable,
+            renderableAlpha,
+            smoothing,
+        });
+    }
+}
+
+class ImageRenderingPolicy extends RenderingPolicy {
+
+    constructor({
+        imageRenderingStrategy,
+        ...args
+    }) {
+        super(args);
+
+        this.imageRenderingStrategy = imageRenderingStrategy;
+    }
+}
+
+class ImageRenderer extends ViewRenderer {
+
+    constructor({
+        renderable=null,
+        renderableAlpha,
         smoothing=true,
         ...args
     }={}) {
-        super({
-            eventHandling: View.TargetPolicy.Ignore,
-            rendering: View.TargetPolicy.Self,
-            updating: View.TargetPolicy.Ignore,
-            ...args,
-        });
+        super(args);
 
         this.renderable = renderable;
-        this.alpha = alpha;
+        this.renderableAlpha = renderableAlpha;
         this.smoothing = smoothing;
     }
 
-    render(context, screenSize) {
-        if (this.rendering === View.TargetPolicy.Ignore) { return }
-        if (this._realSize[0] == null || this._realSize[1] == null) { return }
-        if (this._realSize[0] === 0 || this._realSize[1] === 0) { return }
+    _renderSelf(context, screenSize, view) {
+        if (this.renderable == null) { return }
+        if (this.renderable.loaded === false) { return }
+        if (this.renderable.size == null) { return }
+        if (this.renderable.size[0] === 0 || this.renderable.size[1] === 0) { return }
 
         context.save();
 
+        if (this.renderableAlpha != null) {
+            context.globalAlpha = this.renderableAlpha;
+        }
+
         context.imageSmoothingEnabled = this.smoothing;
-        context.globalAlpha = this.alpha;
-        context.translate(...this._realPosition.map(Math.floor));
 
-        context.beginPath();
-        context.rect(0, 0, ...this._realSize.map(Math.floor));
-        context.clip();
-
-        if (this.rendering !== View.TargetPolicy.Children) {
-            if (this.backgroundColor) {
-                context.fillStyle = this.backgroundColor;
-                context.fillRect(0, 0, ...this._realSize.map(Math.floor));
-            }
-
-            this.willRender(context, screenSize);
-
-            this.renderable?.render(context);
+        if (view.renderingPolicy.imageRenderingStrategy === ImageRenderingStrategy.Stretch) {
+            this.renderable.render(context, [0, 0], view.evaluater.actualSize.div(this.renderable.size));
         }
-
-        if (this.rendering !== View.TargetPolicy.Self) {
-            context.save();
-            context.translate(Math.floor(this.padding), Math.floor(this.padding));
-            this._objects.forEach(object => object.render(context, screenSize));
-            context.restore();
+        else if (view.renderingPolicy.imageRenderingStrategy === ImageRenderingStrategy.Center) {
+            this.renderable.render(context, view.evaluater.actualSize.sub(this.renderable.size).div(2));
         }
-
-        if (this.rendering !== View.TargetPolicy.Children) {
-            this.didRender(context, screenSize);
-
-            if (this.borderColor && this.borderWidth > 0) {
-                context.lineWidth = this.borderWidth;
-                context.strokeStyle = this.borderColor;
-                context.strokeRect(.5, .5, ...this._realSize.add([-1, -1]));
+        else if (view.renderingPolicy.imageRenderingStrategy === ImageRenderingStrategy.Tile) {
+            for (let x = 0; x < view.evaluater.actualSize[0]; x += this.renderable.size[0]) {
+                for (let y = 0; y < view.evaluater.actualSize[1]; y += this.renderable.size[1]) {
+                    this.renderable.render(context, [x, y]);
+                }
             }
         }
 

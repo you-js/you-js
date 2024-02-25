@@ -1,83 +1,60 @@
 import { View } from "./view.js";
+import { ViewEvaluater } from "./view-evaluater.js";
 
 class Stack extends View {
 
     constructor({
+        position=[0, 0],
+        size=[View.Size.Wrap, View.Size.Wrap],
         itemPadding=0,
         ...args
-    }={}) {
-        super(args);
+    }, ...children) {
+        super({
+            evaluater: null,
+            ...args,
+        }, ...children);
+
+        this.evaluater = new StackEvaluater({
+            position,
+            size,
+        });
 
         this.itemPadding = itemPadding;
-    }
-
-    evaluateWrapSizeSelf() {
-        this.#align();
-        super.evaluateWrapSizeSelf();
-    }
-
-    evaluateFillSize(parentSize) {
-        super.evaluateFillSize(parentSize);
-        this.#align();
-    }
-
-    #align() {
-        const stackDirectionIndex = this.getStackDirectionIndex();
-
-        let cumulativeStackDirectionSize = 0;
-
-        for (let i = 0; i < this._objects.length; i++) {
-            const object = this._objects[i];
-
-            object._position[stackDirectionIndex] = cumulativeStackDirectionSize;
-            object._realPosition[stackDirectionIndex] = cumulativeStackDirectionSize;
-
-            cumulativeStackDirectionSize += object._realSize[stackDirectionIndex] + this.itemPadding;
-        }
-    }
-
-    get objects() { return this._objects }
-    set objects(value) {
-        if (!(value instanceof Array)) {
-            throw `Expected an array, but got ${value}`;
-        }
-
-        this._objects.forEach(object => object.parent = null);
-        this._objects.splice(0, this._objects.length, ...value);
-        if (this.parent) {
-            this.#align();
-            this.evaluate();
-        }
-        this._objects.forEach(object => object.parent = this);
-    }
-
-    add(object) {
-        this._objects.push(object);
-        object.parent = this;
-
-        if (this.parent) {
-            this.#align();
-            this.evaluate();
-        }
-    }
-
-    remove(object) {
-        const index = this._objects.indexOf(object);
-        if (index >= 0) {
-            this._objects.splice(index, 1);
-            object.parent = null;
-
-            if (this.parent) {
-                this.#align();
-                this.evaluate();
-            }
-        }
     }
 
     getStackDirectionIndex() {
         throw 'NotImplementedError';
     }
 }
+
+class StackEvaluater extends ViewEvaluater {
+
+    evaluateWrapSizeSelf(view) {
+        this.#align(view);
+        super.evaluateWrapSizeSelf(view);
+    }
+
+    evaluateFillSize(parentSize, view) {
+        super.evaluateFillSize(parentSize, view);
+        this.#align(view);
+    }
+
+    #align(view) {
+        const stackDirectionIndex = view.getStackDirectionIndex();
+
+        let cumulativeStackDirectionSize = 0;
+
+        for (let i = 0; i < view.container._children.length; i++) {
+            const object = view.container._children[i];
+
+            object.evaluater.position[stackDirectionIndex] = cumulativeStackDirectionSize;
+            object.evaluater.actualPosition[stackDirectionIndex] = cumulativeStackDirectionSize;
+
+            cumulativeStackDirectionSize += object.evaluater.actualSize[stackDirectionIndex] + view.itemPadding;
+        }
+    }
+}
+
 
 export class VerticalStack extends Stack {
 
