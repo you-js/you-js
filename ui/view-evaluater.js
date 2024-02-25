@@ -104,11 +104,11 @@ export class ViewEvaluater {
             for (const object of view.container._children) {
                 const x = (
                     (
-                        object.actualPosition[0] == null ||
-                        typeof object.position[0] !== 'number'
+                        object.evaluater.actualPosition[0] == null ||
+                        typeof object.evaluater.position[0] !== 'number'
                     )
                     ? 0
-                    : object.actualPosition[0]
+                    : object.evaluater.actualPosition[0]
                 );
 
                 if (end == null || end < x + (object.evaluater.actualSize[0] ?? 0)) {
@@ -129,11 +129,11 @@ export class ViewEvaluater {
             for (const object of view.container._children) {
                 const y = (
                     (
-                        object.actualPosition[1] == null ||
-                        typeof object.position[1] !== 'number'
+                        object.evaluater.actualPosition[1] == null ||
+                        typeof object.evaluater.position[1] !== 'number'
                     )
                     ? 0
-                    : object.actualPosition[1]
+                    : object.evaluater.actualPosition[1]
                 );
 
                 if (end == null || end < y + (object.evaluater.actualSize[1] ?? 0)) {
