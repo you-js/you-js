@@ -47,6 +47,7 @@ class StackEvaluater extends ViewEvaluater {
         for (let i = 0; i < view.container._children.length; i++) {
             const object = view.container._children[i];
 
+            object.evaluater.position[stackDirectionIndex] = cumulativeStackDirectionSize;
             object.evaluater.actualPosition[stackDirectionIndex] = cumulativeStackDirectionSize;
 
             cumulativeStackDirectionSize += object.evaluater.actualSize[stackDirectionIndex] + view.itemPadding;
