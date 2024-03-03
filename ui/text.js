@@ -44,8 +44,8 @@ export class Text extends Label {
 
     get focus() { return this.eventHandler.focus }
     set focus(value) {
-        if (value === true) {
-            if (Text.focused) {
+        if (value === true && Text.focused !== this) {
+            if (Text.focused != null) {
                 Text.focused.eventHandler.focus = false;
                 Text.focused.borderColor = 'white';
                 Text.focused.events.emit('focusout');
@@ -55,10 +55,8 @@ export class Text extends Label {
             this.borderColor = 'red';
             this.events.emit('focusin');
         }
-        else {
-            if (Text.focused === this) {
-                Text.focused = null;
-            }
+        else if (value === false && Text.focused === this) {
+            Text.focused = null;
             this.eventHandler.focus = false;
             this.borderColor = 'white';
             this.events.emit('focusout');
@@ -107,11 +105,15 @@ class TextEventHandler extends ViewEventHandler {
             }
             else if (event.type === 'keydown') {
                 if (this.focus) {
-                    this.events.emit('keydown');
+                    this.events.emit('keydown', event);
                     event.handled = true;
 
                     if (event.key === 'Backspace') {
                         this.#typeBackspaceKey(view);
+                    } else if (event.key === 'Enter') {
+                        this.events.emit('confirm');
+                    } else if (event.key === 'Escape') {
+                        this.events.emit('cancel');
                     } else {
                         this.#typeTextKey(event.key, view);
                     }
@@ -126,7 +128,7 @@ class TextEventHandler extends ViewEventHandler {
             }
             else if (event.type === 'keyup') {
                 if (this.focus) {
-                    this.events.emit('keyup');
+                    this.events.emit('keyup', event);
                     event.handled = true;
                 }
             }
