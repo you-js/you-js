@@ -14,13 +14,13 @@ export class ObjectContainer {
                 throw `object is not an instance of Object`;
             }
 
-            object._parent = this;
+            object._parent = this.object;
         });
     }
 
     add(...objects) {
         objects.forEach(object => {
-            object._parent = this;
+            object._parent = this.object;
 
             this.objects.push(object);
 
