@@ -33,11 +33,25 @@ export class Object {
         this.destroyer = new ObjectDestroyer({ object: this });
         this.eventHandler = new ObjectEventHandler({ object: this });
         this.updater = new ObjectUpdater({ object: this });
-        this.renderer = new ObjectRenderer({ object: this });
+
+        const transform = this.componentContainer.find(Transform);
+
+        this.transform = transform;
+        this.renderer = new ObjectRenderer({ object: this, transform });
     }
 
     get parent() { return this._parent }
     get isAdded() { return this.parent != null }
+
+    get positionInGlobal() {
+        const position = this.transform?.position ?? [0, 0];
+
+        return (
+            this._parent == null
+            ? position
+            : this._parent.positionInGlobal.add(position)
+        );
+    }
 
     add(...objects) {
         this.objectContainer.add(...objects);
@@ -63,7 +77,10 @@ export class Object {
         this.componentContainer.add(...types);
 
         if (this.componentContainer.has(Transform)) {
-            this.renderer.transform = this.componentContainer.find(Transform);
+            const transform = this.componentContainer.find(Transform);
+
+            this.transform = transform;
+            this.renderer.transform = transform;
         }
     }
 
@@ -71,6 +88,7 @@ export class Object {
         this.componentContainer.remove(...types);
 
         if (!this.componentContainer.has(Transform)) {
+            this.transform = null;
             this.renderer.transform = null;
         }
     }

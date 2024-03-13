@@ -4,8 +4,10 @@ export class ObjectRenderer {
 
     constructor({
         object,
+        transform,
     }) {
         this.object = object;
+        this.transform = transform;
     }
 
     render(context, screenSize) {
