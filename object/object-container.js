@@ -2,6 +2,8 @@ import { Object } from './object.js';
 
 export class ObjectContainer {
 
+    valid = true;
+
     constructor({
         object,
         objects=[],
@@ -16,6 +18,10 @@ export class ObjectContainer {
 
             object._parent = this.object;
         });
+    }
+
+    invalidate() {
+        this.valid = false;
     }
 
     add(...objects) {
@@ -71,6 +77,12 @@ export class ObjectContainer {
     }
 
     update(deltaTime) {
+        if (this.valid === false) {
+            this.objects = this.objects.filter(object => object.state.isDestroyed === false);
+
+            this.valid = true;
+        }
+
         this.objects.forEach(object => object.update(deltaTime));
     }
 
