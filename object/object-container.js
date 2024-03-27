@@ -24,9 +24,14 @@ export class ObjectContainer {
         this.valid = false;
     }
 
+    setScene(scene) {
+        this.objects.forEach(object => object.scene = scene);
+    }
+
     add(...objects) {
         objects.forEach(object => {
             object._parent = this.object;
+            object.scene = this.object._scene;
 
             this.objects.push(object);
 
@@ -47,6 +52,7 @@ export class ObjectContainer {
 
                 this.objects.splice(index, 1);
 
+                object.scene = null;
                 object._parent = null;
             }
         });

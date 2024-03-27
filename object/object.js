@@ -10,6 +10,7 @@ import { Transform } from "./components/transform.js";
 
 export class Object {
 
+    _scene = null;
     _parent = null;
 
     constructor({
@@ -20,7 +21,7 @@ export class Object {
         components=[],
         objects=[],
     }) {
-        this.scene = scene;
+        this._scene = scene;
         this.id = id ?? crypto.randomUUID();
         this.name = name;
         this.enable = enable;
@@ -40,6 +41,7 @@ export class Object {
         this.renderer = new ObjectRenderer({ object: this, transform });
     }
 
+    get scene() { return this._scene }
     get parent() { return this._parent }
     get isAdded() { return this.parent != null }
 
@@ -51,6 +53,11 @@ export class Object {
             ? position
             : this._parent.positionInGlobal.add(position)
         );
+    }
+
+    set scene(value) {
+        this._scene = value;
+        this.objectContainer.setScene(value);
     }
 
     add(...objects) {
