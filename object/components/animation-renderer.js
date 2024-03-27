@@ -43,7 +43,9 @@ export class AnimationRenderer extends Component {
         if (animation == null) { return }
         if (animation === this.animation) { return }
 
+        this.animation = animation;
         this.animationId = animationId;
+
         this.animation.reset();
     }
 }
