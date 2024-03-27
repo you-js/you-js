@@ -147,4 +147,16 @@ export class Object {
 
         this.renderer.render(context, screenSize);
     }
+
+    send(message, receiver, options) {
+        receiver.receive(message, this, options);
+    }
+
+    receive(message, sender, options) {
+        this.componentContainer.receive(message, sender, options);
+
+        if (options?.recursive === true) {
+            this.objectContainer.receive(message, sender, options);
+        }
+    }
 }

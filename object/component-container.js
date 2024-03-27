@@ -80,6 +80,10 @@ export class ComponentContainer {
         this.components.forEach(component => component.renderWithCamera(context, camera));
     }
 
+    receive(message, sender, options) {
+        this.components.forEach(component => component.receive(message, sender, options));
+    }
+
     static createByTypes({
         types=[],
     }) {

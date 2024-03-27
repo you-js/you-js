@@ -99,4 +99,12 @@ export class ObjectContainer {
     renderWithCamera(context, camera) {
         this.objects.forEach(object => object.renderWithCamera(context, camera));
     }
+
+    receive(message, sender, options) {
+        this.objects.forEach(object => {
+            if (object.enable === false) { return }
+
+            object.receive(message, sender, options);
+        });
+    }
 }
