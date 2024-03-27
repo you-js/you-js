@@ -32,7 +32,7 @@ export class Sprite extends Renderable {
     }
 
     get size() {
-        return this.sourceSize.mul(this.scale);
+        return this.sourceSize.mul(this.scale.map(Math.abs));
     }
 
     set size(value) {
