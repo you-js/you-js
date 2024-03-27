@@ -116,6 +116,7 @@ export class Object {
 
         this.state.set(ObjectState.States.Destroying);
         this.destroyer.destroy();
+        this._parent?.objectContainer.invalidate();
         this.state.set(ObjectState.States.Destroyed);
     }
 
