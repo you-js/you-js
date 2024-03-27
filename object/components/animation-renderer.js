@@ -6,18 +6,42 @@ export class AnimationRenderer extends Component {
     animation;
     animationId;
 
+    constructor({
+        speed=1,
+        animations=[],
+        animationId=null,
+        opacity=1,
+    }={}) {
+        super();
+
+        this.speed = speed;
+        this.animations = animations;
+        this.animationId = animationId ?? Object.keys(animations)[0];
+        this.animation = this.animations[this.animationId];
+        this.opacity = opacity;
+    }
+
     onUpdate(deltaTime) {
-        this.animation?.update(deltaTime);
+        this.animation?.update(deltaTime * this.speed);
     }
 
     onRender(context) {
-        this.animation?.render(context);
+        if (this.animation == null) { return }
+        if (this.opacity === 0) { return }
+
+        context.save();
+        context.globalAlpha = this.opacity;
+
+        this.animation.render(context);
+
+        context.restore();
     }
 
     play(animationId) {
-        this.animation = this.animations[animationId];
+        const animation = this.animations[animationId];
 
-        if (this.animation == null) { return }
+        if (animation == null) { return }
+        if (animation === this.animation) { return }
 
         this.animationId = animationId;
         this.animation.reset();
