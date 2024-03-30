@@ -63,10 +63,7 @@ export class View {
 
         this.eventHandlingPolicy = this.#setWithDefault(
             eventHandlingPolicy,
-            new EventHandlingPolicy({
-                eventHandling: true,
-                targetPolicy: TargetPolicy.Both,
-            })
+            new EventHandlingPolicy()
         );
 
         this.eventHandler = this.#setWithDefault(
@@ -76,10 +73,7 @@ export class View {
 
         this.updatingPolicy = this.#setWithDefault(
             updatingPolicy,
-            new UpdatingPolicy({
-                updating: true,
-                targetPolicy: TargetPolicy.Both,
-            })
+            new UpdatingPolicy()
         );
 
         this.updater = this.#setWithDefault(
@@ -89,10 +83,7 @@ export class View {
 
         this.renderingPolicy = this.#setWithDefault(
             renderingPolicy,
-            new RenderingPolicy({
-                rendering: true,
-                targetPolicy: TargetPolicy.Both,
-            })
+            new RenderingPolicy()
         );
 
         this.renderer = this.#setWithDefault(
