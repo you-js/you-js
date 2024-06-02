@@ -2,6 +2,8 @@ import { Component } from "../component.js";
 
 export class AnimationRenderer extends Component {
 
+    static path = import.meta.url.replace(import.meta.resolve('app'), '');
+
     animations;
     animation;
     animationId;
