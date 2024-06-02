@@ -207,11 +207,11 @@ export class View {
         return this.container.findAllByName(name);
     }
 
-    create() {
-        this.onCreate();
+    create(...args) {
+        this.onCreate(...args);
 
         for (const object of this.container._children) {
-            object.create();
+            object.create(...args);
         }
     }
 
