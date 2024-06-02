@@ -18,6 +18,7 @@ export class Object {
         id=null,
         name=null,
         enable=true,
+        tags=[],
         components=[],
         objects=[],
     }) {
@@ -25,6 +26,7 @@ export class Object {
         this.id = id ?? crypto.randomUUID();
         this.name = name;
         this.enable = enable;
+        this.tags = new Set(tags);
 
         this.componentContainer = new ComponentContainer({ object: this, components });
         this.objectContainer = new ObjectContainer({ object: this, objects });
