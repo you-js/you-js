@@ -162,6 +162,9 @@ export class View {
         this.evaluater.evaluateFillSize(parentSize, this);
     }
 
+    get alpha() { return this.renderer.alpha }
+    set alpha(value) { this.renderer.alpha = value }
+
     get backgroundColor() { return this.renderer.backgroundColor }
     set backgroundColor(value) { this.renderer.backgroundColor = value }
 
