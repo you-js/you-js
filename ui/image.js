@@ -12,6 +12,8 @@ const ImageRenderingStrategy = {
 
 export class Image extends View {
 
+    static path = import.meta.url.replace(import.meta.resolve('app'), '');
+
     static ImageRenderingStrategy = ImageRenderingStrategy;
 
     constructor({

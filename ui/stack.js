@@ -3,6 +3,8 @@ import { ViewEvaluater } from "./view-evaluater.js";
 
 class Stack extends View {
 
+    static path = import.meta.url.replace(import.meta.resolve('app'), '');
+
     constructor({
         position=[0, 0],
         size=[View.Size.Wrap, View.Size.Wrap],

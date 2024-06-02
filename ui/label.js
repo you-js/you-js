@@ -19,6 +19,8 @@ const VERTICAL_ALIGN = {
 
 export class Label extends View {
 
+    static path = import.meta.url.replace(import.meta.resolve('app'), '');
+
     static font = '16px sans-serif';
     static fontColor = 'black';
     static textAlign = 'left';

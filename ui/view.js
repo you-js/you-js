@@ -27,6 +27,8 @@ const TargetPolicy = {
 
 export class View {
 
+    static path = import.meta.url.replace(import.meta.resolve('app'), '');
+
     static Position = Position;
     static Size = Size;
     static TargetPolicy = TargetPolicy;
