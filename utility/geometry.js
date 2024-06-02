@@ -146,7 +146,9 @@ Object.defineProperty(Array.prototype, 'align', {
     }
 });
 
-export function getDirectionFromVector(v) {
+export function getCardinalDirectionFromVector(v, defaultDirection='down') {
+    if (v == null) { return defaultDirection }
+
     const angle = (Math.atan2(v[1], -v[0]) + Math.PI) * 180 / Math.PI;
 
     if (45 <= angle && angle < 135) {
@@ -157,6 +159,19 @@ export function getDirectionFromVector(v) {
     }
     else if (225 <= angle && angle < 315) {
         return 'down';
+    }
+    else {
+        return 'right';
+    }
+}
+
+export function getHorizontalDirectionFromVector(v, defaultDirection='left') {
+    if (v == null) { return defaultDirection }
+
+    const angle = (Math.atan2(v[1], -v[0]) + Math.PI) * 180 / Math.PI;
+
+    if (90 <= angle && angle < 270) {
+        return 'left';
     }
     else {
         return 'right';
