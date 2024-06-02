@@ -9,20 +9,20 @@ import { ViewRenderer } from "./view-renderer.js";
 import { ViewContainer } from "./view-container.js";
 
 const Position = {
-    Start:  Symbol('position-start'),
-    Center: Symbol('position-center'),
-    End:    Symbol('position-end'),
+    Start:  Symbol.for('position-start'),
+    Center: Symbol.for('position-center'),
+    End:    Symbol.for('position-end'),
 };
 
 const Size = {
-    Fill: Symbol('size-fill'),
-    Wrap: Symbol('size-wrap'),
+    Fill: Symbol.for('size-fill'),
+    Wrap: Symbol.for('size-wrap'),
 };
 
 const TargetPolicy = {
-    Both:     Symbol('target-policy-both'),
-    Self:     Symbol('target-policy-self'),
-    Children: Symbol('target-policy-children'),
+    Both:     Symbol.for('target-policy-both'),
+    Self:     Symbol.for('target-policy-self'),
+    Children: Symbol.for('target-policy-children'),
 };
 
 export class View {
