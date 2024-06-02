@@ -11,6 +11,11 @@ export class ViewContainer {
         children.forEach(childView => this.add(childView, view));
     }
 
+    get scene() { return this.view._scene }
+    set scene(value) {
+        this._children.forEach(view => view.scene = value);
+    }
+
     get children() { return this._children }
     set children(value) {
         if (!(value instanceof Array)) {

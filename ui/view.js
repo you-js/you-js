@@ -100,12 +100,18 @@ export class View {
 
         this.container = new ViewContainer({ view: this, children });
 
-        this.scene = null;
+        this._scene = null;
         this.parent = null;
     }
 
     #setWithDefault(value, defaultValue) {
         return value ?? (value === null ? null : defaultValue);
+    }
+
+    get scene() { return this._scene }
+    set scene(value) {
+        this._scene = value;
+        this.container.scene = value;
     }
 
     get x() { return this.evaluater.actualPosition[0] }
