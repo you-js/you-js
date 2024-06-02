@@ -15,6 +15,7 @@ export class ObjectRenderer {
 
         if (this.transform != null) {
             context.translate(...this.transform.position.map(Math.floor));
+            context.rotate(this.transform.rotation);
         }
 
         this.object.componentContainer.render(context, screenSize);

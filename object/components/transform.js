@@ -6,11 +6,13 @@ export class Transform extends Component {
 
     constructor({
         position=[0, 0],
+        rotation=0,
         scale=[1, 1],
     }={}) {
         super();
 
         this.position = position;
+        this.rotation = rotation;
         this.scale = scale;
     }
 }
