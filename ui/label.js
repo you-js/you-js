@@ -17,6 +17,11 @@ const VERTICAL_ALIGN = {
     bottom: 1,
 };
 
+const BoundingBoxPolicy = {
+    Actual: Symbol.for('actual'),
+    Font: Symbol.for('font'),
+};
+
 export class Label extends View {
 
     static path = import.meta.url.replace(import.meta.resolve('app'), '');
@@ -26,6 +31,8 @@ export class Label extends View {
     static textAlign = 'left';
     static textBaseline = 'top';
 
+    static BoundingBoxPolicy = BoundingBoxPolicy;
+
     constructor({
         position=[0, 0],
         size=[View.Size.Wrap, View.Size.Wrap],
@@ -34,6 +41,9 @@ export class Label extends View {
         fontColor,
         textAlign,
         textBaseline,
+        maxWidth=null,
+        spacing=0,
+        boundingBoxPolicy=BoundingBoxPolicy.Actual,
         ...args
     }, ...children) {
         super({
@@ -54,6 +64,9 @@ export class Label extends View {
             fontColor,
             textAlign,
             textBaseline,
+            maxWidth,
+            spacing,
+            boundingBoxPolicy,
             measurer: this.measurer,
         });
 
@@ -77,22 +90,148 @@ export class Label extends View {
 
     get textBaseline() { return this.renderer.textBaseline }
     set textBaseline(value) { this.renderer.textBaseline = value }
+
+    get maxWidth() { return this.renderer.maxWidth }
+    set maxWidth(value) { this.renderer.maxWidth = value }
+
+    get spacing() { return this.renderer.spacing }
+    set spacing(value) { this.renderer.spacing = value }
+
+    get boundingBoxPolicy() { return this.renderer.boundingBoxPolicy }
+    set boundingBoxPolicy(value) { this.renderer.boundingBoxPolicy = value }
 }
 
 class Measurer {
 
     textMetrics = null;
+    measured = null;
 
-    measure(text, font, textAlign, textBaseline) {
+    measure(text, view) {
+        const { font, textAlign, textBaseline, maxWidth, spacing, boundingBoxPolicy } = view;
+
+        if (text == null || text.length === 0) {
+            return {
+                lines: [],
+                metricsList: [],
+                sizeList: [],
+                offsetList: [],
+                boundingBoxSize: [0, 0],
+            };
+        }
+
         const context = globalThis.canvas.getContext('2d');
 
         context.font = font;
         context.textAlign = textAlign;
         context.textBaseline = textBaseline;
 
-        const metrics = this.textMetrics = context.measureText(text);
+        const lines = (
+            maxWidth == null
+            ? text.split('\n')
+            : this.#parseLines(text.split('\n'), maxWidth, text => context.measureText(text).width)
+        );
 
-        return metrics;
+        const metricsList = lines.map(line => context.measureText(line));
+        const sizeList = this.#getSizeList(metricsList, boundingBoxPolicy);
+        const offsetList = this.#getOffsetList(textAlign, textBaseline, metricsList);
+        const boundingBoxSize = this.#getBoundingBoxSize(metricsList, spacing, boundingBoxPolicy);
+
+        const measured = {
+            lines,
+            metricsList,
+            sizeList,
+            offsetList,
+            boundingBoxSize,
+        };
+
+        this.measured = measured;
+
+        return measured;
+    }
+
+    #getSizeList(metricsList, boundingBoxPolicy) {
+        return metricsList.map(metrics => this.#getBoundingBoxSizeFromMetrics(metrics, boundingBoxPolicy));
+    }
+
+    #getBoundingBoxSize(metricsList, spacing, boundingBoxPolicy) {
+        const sizes = metricsList.map(
+            metrics => this.#getBoundingBoxSizeFromMetrics(metrics, boundingBoxPolicy)
+        );
+
+        return [
+            sizes.reduce((acc, cur) => acc[0] < cur[0] ? cur : acc)[0],
+            sizes.reduce((acc, cur) => acc + cur[1], 0) + spacing * (sizes.length - 1),
+        ];
+    }
+
+    #getBoundingBoxSizeFromMetrics(metrics, boundingBoxPolicy) {
+        return [
+            metrics.actualBoundingBoxLeft + metrics.actualBoundingBoxRight,
+            (
+                boundingBoxPolicy === BoundingBoxPolicy.Actual
+                ? metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent
+                : metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent
+            ),
+        ].map(Math.ceil);
+    }
+
+    #getOffsetList(textAlign, textBaseline, metricsList) {
+        const offsets = metricsList.map(
+            metrics => this.#getOffsetFromMetrics(textAlign, textBaseline, metrics)
+        );
+
+        return offsets;
+    }
+
+    #getOffsetFromMetrics(textAlign, textBaseline, metrics) {
+        const offset = [0, 0];
+
+        if (textAlign === 'left') {
+            offset[0] = metrics.actualBoundingBoxLeft;
+        }
+        else if (textAlign === 'center') {
+            offset[0] = (metrics.actualBoundingBoxLeft - metrics.actualBoundingBoxRight) / 2;
+        }
+        else if (textAlign === 'right') {
+            offset[0] = -metrics.actualBoundingBoxRight;
+        }
+
+        if (textBaseline === 'top') {
+            offset[1] = metrics.actualBoundingBoxAscent;
+        }
+        else if (textBaseline === 'middle') {
+            offset[1] = (metrics.actualBoundingBoxAscent - metrics.actualBoundingBoxDescent) / 2;
+        }
+        else if (textBaseline === 'bottom') {
+            offset[1] = -metrics.actualBoundingBoxDescent;
+        }
+
+        return offset;
+    }
+
+    #parseLines(lines, maxWidth, measurer) {
+        const parsedLines = [];
+
+        for (const line of lines) {
+            let tempLine = '';
+
+            for (let i = 0; i < line.length; i++) {
+                const character = line[i];
+
+                tempLine += character;
+
+                const tempLineWidth = measurer(tempLine);
+
+                if (tempLineWidth >= maxWidth) {
+                    parsedLines.push(tempLine.slice(0, -1));
+                    tempLine = character;
+                }
+            }
+
+            parsedLines.push(tempLine);
+        }
+
+        return parsedLines;
     }
 }
 
@@ -104,18 +243,31 @@ class LabelRenderer extends ViewRenderer {
         fontColor,
         textAlign,
         textBaseline,
+        maxWidth,
+        spacing,
+        boundingBoxPolicy,
         measurer,
         ...args
     }={}) {
         super(args);
 
-        this.text = text ?? Label.text;
         this.font = font ?? Label.font;
         this.fontColor = fontColor ?? Label.fontColor;
         this.textAlign = textAlign ?? Label.textAlign;
         this.textBaseline = textBaseline ?? Label.textBaseline;
+        this.maxWidth = maxWidth;
+        this.spacing = spacing;
+        this.boundingBoxPolicy = boundingBoxPolicy;
 
         this.measurer = measurer;
+
+        this.text = text ?? Label.text;
+    }
+
+    get text() { return this._text }
+    set text(value) {
+        this._text = `${value}`;
+        this._measured = this.measurer.measure(this._text, this);
     }
 
     _renderSelf(context, screenSize, view) {
@@ -128,58 +280,45 @@ class LabelRenderer extends ViewRenderer {
         context.textAlign = this.textAlign;
         context.textBaseline = this.textBaseline;
 
-        const offset = this.#getOffset();
-        const align = [
-            HORIZONTAL_ALIGN[this.textAlign] * (view.evaluater.actualSize[0] - view.padding * 2),
-            VERTICAL_ALIGN[this.textBaseline] * (view.evaluater.actualSize[1] - view.padding * 2),
-        ].add(offset)
-        .map(Math.floor);
+        const boundingBoxSize = this._measured.boundingBoxSize;
 
-        context.fillText(this.text, ...align);
+        const align = [
+            HORIZONTAL_ALIGN[this.textAlign],
+            VERTICAL_ALIGN[this.textBaseline],
+        ].mul(
+            view.evaluater.actualSize
+            .sub(view.padding * 2)
+            .sub([0, boundingBoxSize[1]])
+            .add([0, this._measured.sizeList[0][1]])
+        );
+
+        let lineHeight = 0;
+
+        for (let i = 0; i < this._measured.lines.length; i++) {
+            const offset = this._measured.offsetList[i];
+
+            context.fillText(this._measured.lines[i], ...align.add(offset).add([0, lineHeight]).map(Math.floor));
+
+            lineHeight += this._measured.sizeList[i][1] * (1 - VERTICAL_ALIGN[this.textBaseline]);
+            lineHeight += (this._measured.sizeList?.[i+1]?.[1] * VERTICAL_ALIGN[this.textBaseline] ?? 0);
+            lineHeight += this.spacing;
+        }
 
         context.restore();
-    }
-
-    #getOffset() {
-        const offsets = [];
-
-        const textMetrics = this.measurer.textMetrics;
-
-        if (this.textAlign === 'left') {
-            offsets[0] = textMetrics.actualBoundingBoxLeft;
-        }
-        else if (this.textAlign === 'center') {
-            offsets[0] = (textMetrics.actualBoundingBoxLeft - textMetrics.actualBoundingBoxRight) / 2;
-        }
-        else if (this.textAlign === 'right') {
-            offsets[0] = -textMetrics.actualBoundingBoxRight;
-        }
-
-        if (this.textBaseline === 'top') {
-            offsets[1] = textMetrics.actualBoundingBoxAscent;
-        }
-        else if (this.textBaseline === 'middle') {
-            offsets[1] = (textMetrics.actualBoundingBoxAscent - textMetrics.actualBoundingBoxDescent) / 2;
-        }
-        else if (this.textBaseline === 'bottom') {
-            offsets[1] = -textMetrics.actualBoundingBoxDescent;
-        }
-
-        return offsets;
     }
 }
 
 class LabelEvaluater extends ViewEvaluater {
 
     evaluateWrapSizeSelf(view) {
-        const textMetrics = view.measurer.measure(view.text, view.font, view.textAlign, view.textBaseline);
+        const measured = view.measurer.measure(view.text, view);
 
         if (this.size[0] === View.Size.Wrap) {
-            this.actualSize[0] = Math.ceil(textMetrics.actualBoundingBoxLeft + textMetrics.actualBoundingBoxRight + view.padding * 2);
+            this.actualSize[0] = Math.ceil(measured.boundingBoxSize[0] + view.padding * 2);
         }
 
         if (this.size[1] === View.Size.Wrap) {
-            this.actualSize[1] = Math.ceil(textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent + view.padding * 2);
+            this.actualSize[1] = Math.ceil(measured.boundingBoxSize[1] + view.padding * 2);
         }
     }
 }
