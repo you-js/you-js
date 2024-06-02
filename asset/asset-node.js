@@ -197,6 +197,7 @@ export class AssetNode extends AssetObject {
 
         switch (extension) {
             case 'mp3':
+            case 'ogg':
             case 'wav':
                 return await this.#loadAudioFromPath(path);
             case 'png':
