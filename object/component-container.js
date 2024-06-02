@@ -81,7 +81,14 @@ export class ComponentContainer {
     }
 
     receive(message, sender, options) {
-        this.components.forEach(component => component.receive(message, sender, options));
+        if (options?.targetComponent != null) {
+            const targetComponent = this.components.find(component => options.targetComponent === component.constructor.name);
+
+            targetComponent?.receive(message, sender, options);
+        }
+        else {
+            this.components.forEach(component => component.receive(message, sender, options));
+        }
     }
 
     static createByTypes({
