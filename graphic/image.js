@@ -32,4 +32,11 @@ export class Image extends Renderable {
 
         context.drawImage(this.raw, ...position, this.raw.width * scale[0], this.raw.height * scale[1]);
     }
+
+    toJSON() {
+        return {
+            '@type': 'image',
+            source: this.source,
+        };
+    }
 }
