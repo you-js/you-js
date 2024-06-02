@@ -82,9 +82,9 @@ export class ViewEvaluater {
     evaluate(parentSize, view) {
         this.evaluateWrapSize(view);
 
-        if (parentSize == null && view.parent == null) { return }
+        if (parentSize == null && view.parent == null && view.scene == null) { return }
 
-        parentSize ??= view.parent.innerSize;
+        parentSize ??= view.parent?.innerSize ?? view.scene?.screen.size;
 
         this.evaluateFillSize(parentSize, view);
     }
@@ -169,7 +169,7 @@ export class ViewEvaluater {
     }
 
     evaluatePosition(parentSize, view) {
-        const [parentWidth, parentHeight] = parentSize ?? view.parent.innerSize;
+        const [parentWidth, parentHeight] = parentSize;
 
         if (this.position[0] === View.Position.Start) {
             this.actualPosition[0] = 0;
