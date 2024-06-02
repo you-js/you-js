@@ -123,7 +123,7 @@ export class Application {
                 this.#scene.camera = new Camera({ screen: this.channels.screen });
             }
 
-            this.#scene.create(this.channels.screen?.size);
+            this.#scene.create();
         }
     }
 

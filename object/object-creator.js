@@ -6,8 +6,8 @@ export class ObjectCreator {
         this.object = object;
     }
 
-    create() {
-        this.object.componentContainer.create();
-        this.object.objectContainer.create();
+    create(...args) {
+        this.object.componentContainer.create(...args);
+        this.object.objectContainer.create(...args);
     }
 }

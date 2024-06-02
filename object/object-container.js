@@ -70,8 +70,8 @@ export class ObjectContainer {
         return this.objects.filter(object => object.name === name);
     }
 
-    create() {
-        this.objects.forEach(object => object.create());
+    create(...args) {
+        this.objects.forEach(object => object.create(...args));
     }
 
     destroy() {

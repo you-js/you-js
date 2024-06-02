@@ -4,8 +4,8 @@ export class Component {
 
     get owner() { return this._owner }
 
-    create() {
-        this.onCreate();
+    create(...args) {
+        this.onCreate(...args);
     }
 
     destroy() {

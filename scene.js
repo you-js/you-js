@@ -49,12 +49,12 @@ export class Scene {
         return this.views.filter(view => view.name === viewName);
     }
 
-    create() {
-        this.willCreate();
-        this.objects.forEach(object => object.create?.());
-        this.views.forEach(view => view.create());
+    create(...args) {
+        this.willCreate(...args);
+        this.objects.forEach(object => object.create?.(...args));
+        this.views.forEach(view => view.create(...args));
         this.views.forEach(view => view.evaluate(this.screen.size));
-        this.didCreate();
+        this.didCreate(...args);
     }
 
     willCreate() {}

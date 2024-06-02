@@ -112,11 +112,11 @@ export class Object {
         throw `Component "${type.name}" is required.`;
     }
 
-    create() {
+    create(...args) {
         if (!this.state.isInstantiated) { return }
 
         this.state.set(ObjectState.States.Creating);
-        this.creator.create();
+        this.creator.create(...args);
         this.state.set(ObjectState.States.Created);
     }
 

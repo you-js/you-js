@@ -56,8 +56,8 @@ export class ComponentContainer {
         return this.components.find(component => component instanceof type);
     }
 
-    create() {
-        this.components.forEach(component => component.create());
+    create(...args) {
+        this.components.forEach(component => component.create(...args));
     }
 
     destroy() {
