@@ -5,9 +5,9 @@ import { RenderingPolicy } from "./rendering-policy.js";
 import { ViewRenderer } from "./view-renderer.js";
 
 const ImageRenderingStrategy = {
-    Stretch: 'stretch',
-    Center: 'center',
-    Tile: 'tile',
+    Stretch: Symbol.for('stretch'),
+    Center: Symbol.for('center'),
+    Tile: Symbol.for('tile'),
 };
 
 export class Image extends View {
