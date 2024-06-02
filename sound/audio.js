@@ -15,8 +15,20 @@ export class Audio {
         });
     }
 
+    get loop() { return this.raw.loop }
+    set loop(value) { this.raw.loop = value; }
+
     play() {
         this.raw.currentTime = 0;
         this.raw.play();
+    }
+
+    pause() {
+        this.raw.pause();
+    }
+
+    stop() {
+        this.raw.pause();
+        this.raw.currentTime = 0;
     }
 }
