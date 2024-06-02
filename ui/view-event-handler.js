@@ -85,6 +85,9 @@ export class ViewEventHandler {
                 else if (event.type === 'mouseup') {
                     this._handleMouseUp(event, view)
                 }
+                else if (event.type === 'mousewheel') {
+                    this._handleMouseWheel(event, view);
+                }
             }
             else {
                 if (event.handled) { continue }
@@ -144,6 +147,16 @@ export class ViewEventHandler {
         }
 
         this.mouseDown = false;
+    }
+
+    _handleMouseWheel(event, view) {
+        if (event.handled) { return }
+
+        const mousePosition = event.position;
+
+        if (view.globalArea.contains(mousePosition)) {
+            event.handled = this.events.emit('mousewheel', event);
+        }
     }
 
     resetStates(children) {

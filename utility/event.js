@@ -66,7 +66,10 @@ export class EventEmitter {
 
     emit(eventId, ...args) {
         const handlerInfos = this.eventHandlerInfos[eventId];
-        if (handlerInfos == null) { return }
+
+        if (handlerInfos == null) { return false }
+
+        let called = false;
 
         handlerInfos.forEach(handlerInfo => {
             const { boundHandler, count } = handlerInfo;
@@ -76,16 +79,20 @@ export class EventEmitter {
             handlerInfo.count -= 1;
 
             boundHandler(...args, this.bindee);
+
+            called = true;
         });
 
-        if (this.eventHandlerInfos == null) { return }
+        if (this.eventHandlerInfos != null) {
+            if (this.eventHandlerInfos[eventId] == null || this.eventHandlerInfos[eventId].length <= 0) {
+                delete this.eventHandlerInfos[eventId];
+            }
+            else {
+                this.eventHandlerInfos[eventId] = this.eventHandlerInfos[eventId].filter(({ count }) => count > 0);
+            }
+        }
 
-        if (this.eventHandlerInfos[eventId] == null || this.eventHandlerInfos[eventId].length <= 0) {
-            delete this.eventHandlerInfos[eventId];
-        }
-        else {
-            this.eventHandlerInfos[eventId] = this.eventHandlerInfos[eventId].filter(({ count }) => count > 0);
-        }
+        return called;
     }
 
     dispose() {
