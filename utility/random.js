@@ -92,7 +92,19 @@ const random = {
         }
 
         return result;
-    }
+    },
+    sample(array, options) {
+        const total = array.reduce((acc, v) => acc + v, 0);
+        let number = Math.random() * total;
+
+        for (let i = 0; i < array.length; i++) {
+            if (number < array[i]) {
+                return options?.argument === true ? i : array[i];
+            }
+
+            number -= array[i];
+        }
+    },
 };
 
 export default random;
