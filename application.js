@@ -1,16 +1,20 @@
-import { EventQueue } from "./framework/event.js";
-import { Scene } from './scene.js';
 import { Camera } from "./camera.js";
+import { EventQueue } from "./framework/event.js";
+import { ProjectSceneInstantiater } from "./project/project-scene-instantiator.js";
+import { Scene } from './scene.js';
 
 export class Application {
 
-    #scene = null;
-    #nextScene = null;
+    _scene = null;
+    _nextScene = null;
+
+    _transition = null;
+    _didTransitionInThisLoop = false;
 
     constructor({
         scene=null,
     }={}) {
-        this.#scene = scene;
+        this._scene = scene;
 
         this.eventQueue = new EventQueue();
 
@@ -21,16 +25,16 @@ export class Application {
         };
     }
 
-    get scene() { return this.#scene }
+    get scene() { return this._scene }
 
     connect(channel) {
         if (channel.type === 'screen') {
             this.channels.screen = channel.object;
             this.channels.screen.connect(this.eventQueue);
 
-            if (this.#scene != null) {
-                this.#scene.screen = this.channels.screen;
-                this.#scene.camera = new Camera({ screen: this.channels.screen });
+            if (this._scene != null) {
+                this._scene.screen = this.channels.screen;
+                this._scene.camera = new Camera({ screen: this.channels.screen });
             }
         }
         else if (channel.type === 'mouse') {
@@ -44,9 +48,9 @@ export class Application {
     }
 
     disconnect() {
-        if (this.#scene != null) {
-            this.#scene.screen = null;
-            this.#scene.camera = null;
+        if (this._scene != null) {
+            this._scene.screen = null;
+            this._scene.camera = null;
         }
 
         this.channels.screen.disconnect();
@@ -63,17 +67,9 @@ export class Application {
 
     async onLoad(assets) {}
 
-    transit(scene) {
-        if (!(scene instanceof Scene)) {
-            throw `scene is not Scene instance: ${scene}`;
-        }
-
-        this.#nextScene = scene;
-    }
-
     create() {
         this.willCreate();
-        this.#scene?.create();
+        this._scene?.create();
 		this.didCreate();
     }
 
@@ -82,7 +78,7 @@ export class Application {
 
     destroy() {
         this.willDestroy();
-        this.#scene?.destroy();
+        this._scene?.destroy();
         this.willDestroy();
     }
 
@@ -92,13 +88,13 @@ export class Application {
     update(deltaTime) {
         this.willUpdate(deltaTime);
 
-        this.#scene?.handle(this.eventQueue.events);
-        this.#scene?.update(deltaTime);
+        this._scene?.handle(this.eventQueue.events);
+        this._scene?.update(deltaTime);
 
 		this.didUpdate(deltaTime);
 
-        if (this.#nextScene != null) {
-            this.#transitNextScene();
+        if (this._transition != null) {
+            this._doTransition();
         }
 
         this.eventQueue.clear();
@@ -107,36 +103,101 @@ export class Application {
     willUpdate(deltaTime) {}
     didUpdate(deltaTime) {}
 
-    #transitNextScene() {
-        if (this.#scene != null) {
-            this.#scene.screen = null;
-            this.#scene.camera = null;
-            this.#scene.destroy();
+    _doTransition() {
+        const { scene, destroyArgs, createArgs } = this._transition;
+
+        this._transition = null;
+
+        if (this._scene != null) {
+            this._scene.destroy(...destroyArgs);
+            this._scene.screen = null;
+            this._scene.camera = null;
         }
 
-        this.#scene = this.#nextScene;
-        this.#nextScene = null;
+        this._scene = scene;
 
-        if (this.#scene != null) {
+        if (this._scene != null) {
             if (this.channels.screen != null) {
-                this.#scene.screen = this.channels.screen;
-                this.#scene.camera = new Camera({ screen: this.channels.screen });
+                this._scene.screen = this.channels.screen;
+                this._scene.camera = new Camera({ screen: this.channels.screen });
             }
 
-            this.#scene.create();
+            this._scene.create(...createArgs);
         }
+
+        this._didTransitionInThisLoop = true;
     }
 
     render() {
+        if (this._didTransitionInThisLoop) {
+            this._didTransitionInThisLoop = false;
+            return;
+        }
+
         if (this.channels.screen == null) { return }
 
         this.channels.screen.clear();
 
         this.willRender(this.channels.screen.context);
-        this.#scene?.render(this.channels.screen.context);
+        this._scene?.render(this.channels.screen.context);
         this.didRender(this.channels.screen.context);
     }
 
     willRender(context) {}
     didRender(context) {}
+
+    transit(scene, { destroyArgs=[], createArgs=[] }={}) {
+        if (!(scene instanceof Scene)) {
+            throw `scene is not Scene instance: ${scene}`;
+        }
+
+        this._transition = { scene, destroyArgs, createArgs };
+    }
+}
+
+export class ProjectPlayableApplication extends Application {
+
+    constructor({
+        project,
+    }={}) {
+        super();
+
+        this.project = project;
+
+        this.sceneInstantiater = new ProjectSceneInstantiater();
+
+        this.transit(this.project.scenes[0].name);
+    }
+
+    _doTransition() {
+        const { sceneName, destroyArgs, createArgs } = this._transition;
+
+        this._transition = null;
+
+        if (this._scene != null) {
+            this._scene.destroy(...destroyArgs);
+            this._scene.screen = null;
+            this._scene.camera = null;
+        }
+
+        const projectScene = this.project.scenes.find(scene => scene.name === sceneName);
+        const scene = this.sceneInstantiater.instantiate(projectScene, null);
+
+        this._scene = scene;
+
+        if (this._scene != null) {
+            if (this.channels.screen != null) {
+                this._scene.screen = this.channels.screen;
+                this._scene.camera = new Camera({ screen: this.channels.screen });
+            }
+
+            this._scene.create(...createArgs);
+        }
+
+        this._didTransitionInThisLoop = true;
+    }
+
+    transit(sceneName, { destroyArgs=[], createArgs=[] }={}) {
+        this._transition = { sceneName, destroyArgs, createArgs };
+    }
 }
