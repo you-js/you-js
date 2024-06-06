@@ -1,4 +1,5 @@
 import { ResourceParser } from "./asset/resource-parser.js";
+import data from "./data/data.js";
 import { Core } from "./framework/core.js";
 import { Screen } from "./framework/screen.js";
 import platform from "./platform.js";
@@ -10,10 +11,10 @@ import { } from "./utility/vector.js";
 
 let core = null;
 
-function start(configurations) {
+async function start(configurations) {
     const screen = new Screen(configurations.screen);
     const application = new configurations.application();
-    const assets = ResourceParser.parse(configurations.resources);
+    const assets = ResourceParser.parse(configurations.resources ?? await data.getResourceContainer());
 
     core = new Core({ screen });
 
@@ -42,4 +43,7 @@ function stop() {
     }
 }
 
-export default { start, stop };
+export default {
+    start,
+    stop,
+};
