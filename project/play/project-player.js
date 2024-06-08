@@ -71,9 +71,9 @@ export class ProjectPlayer {
 
         this.scene.update(deltaTime);
 
-        // if (this.playable.canTransit()) {
-        //     this.playable.transit();
-        // }
+        if (this._transition != null) {
+            this._doTransition();
+        }
     }
 
     render(context, screenSize) {
