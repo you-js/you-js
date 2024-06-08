@@ -49,6 +49,7 @@ async function load(configurations) {
     const {
         screen: screenConfigurations,
         resources: resourcesConfigurations,
+        application: applicationConfigurations,
         project: projectId,
     } = configurations;
 
@@ -61,7 +62,7 @@ async function load(configurations) {
         throw `Project with id "${projectId}" not found.`;
     }
 
-    const application = new ProjectPlayableApplication({ project });
+    const application = new (applicationConfigurations ?? ProjectPlayableApplication)({ project });
 
     core = new Core({ screen });
 
