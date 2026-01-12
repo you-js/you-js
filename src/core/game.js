@@ -1,3 +1,5 @@
+import { CollisionSystem } from './collision-system.js';
+
 // The Core Game Engine Singleton
 export class Game {
     constructor() {
@@ -7,6 +9,9 @@ export class Game {
         this.height = 600;
         this.entities = [];
         this.lastTime = 0;
+        
+        // Systems
+        this.collisionSystem = new CollisionSystem(this);
         
         // Bind loop to maintain 'this' context
         this.loop = this.loop.bind(this);
@@ -58,12 +63,15 @@ export class Game {
         // 1. Update
         this.update(deltaTime);
 
+        // 2. Physics
+        this.collisionSystem.update();
+
         // Clear input per-frame states
         if (window.input && typeof window.input.clearFrame === 'function') {
             window.input.clearFrame();
         }
 
-        // 2. Draw
+        // 3. Draw
         this.draw();
 
         // Repeat
