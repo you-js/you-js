@@ -5,6 +5,7 @@ import { Component } from '../src/core/component.js';
 import { SpriteRenderer } from '../src/core/components/sprite-renderer.js';
 import { BoxCollider } from '../src/core/components/box-collider.js';
 import { Loader } from '../src/core/loader.js';
+import { input } from '../src/core/input.js';
 
 // Define a custom Player Controller Component
 class PlayerController extends Component {

@@ -1,7 +1,7 @@
 // Keyboard input manager
 // Provides simple frame-aware key state queries using full-word identifiers
 
-class InputManager {
+export class InputManager {
     constructor() {
         this.keysDown = new Set();
         this.keysPressed = new Set();
