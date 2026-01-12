@@ -1,17 +1,17 @@
 {
   "name": "gemmer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "The simplest and most convenient 2D game engine",
   "type": "module",
   "files": [
     "dist"
   ],
-  "main": "./dist/gemmer.umd.cjs",
-  "module": "./dist/gemmer.js",
+  "main": "./dist/gemmer.umd.js",
+  "module": "./dist/gemmer.es.js",
   "exports": {
     ".": {
-      "import": "./dist/gemmer.js",
-      "require": "./dist/gemmer.umd.cjs"
+      "import": "./dist/gemmer.es.js",
+      "require": "./dist/gemmer.umd.js"
     }
   },
   "scripts": {
