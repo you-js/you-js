@@ -1,17 +1,17 @@
 {
-  "name": "you-js",
+  "name": "gemmer",
   "version": "0.1.0",
   "description": "The simplest and most convenient 2D game engine",
   "type": "module",
   "files": [
     "dist"
   ],
-  "main": "./dist/you-js.umd.cjs",
-  "module": "./dist/you-js.js",
+  "main": "./dist/gemmer.umd.cjs",
+  "module": "./dist/gemmer.js",
   "exports": {
     ".": {
-      "import": "./dist/you-js.js",
-      "require": "./dist/you-js.umd.cjs"
+      "import": "./dist/gemmer.js",
+      "require": "./dist/gemmer.umd.cjs"
     }
   },
   "scripts": {

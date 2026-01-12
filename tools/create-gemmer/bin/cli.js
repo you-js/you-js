@@ -13,7 +13,7 @@ const projectName = process.argv[2];
 
 if (!projectName) {
   console.error('Please specify the project name:');
-  console.error('  npx create-you-js <project-directory>');
+  console.error('  npx create-gemmer <project-directory>');
   process.exit(1);
 }
 
@@ -49,7 +49,7 @@ function copyDir(src, dest) {
 }
 
 // Copy template files
-console.log(`Creating a new You.js app in ${projectDir}...`);
+console.log(`Creating a new Gemmer app in ${projectDir}...`);
 copyDir(templateDir, projectDir);
 
 // Update package.json with the new project name
@@ -59,7 +59,7 @@ const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
 packageJson.name = projectName;
 // Reset version and description for the new project
 packageJson.version = '0.1.0';
-packageJson.description = 'A game built with You.js';
+packageJson.description = 'A game built with Gemmer';
 
 fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
 

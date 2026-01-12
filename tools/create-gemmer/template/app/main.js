@@ -1,4 +1,4 @@
-import { game } from 'you-js';
+import { game } from 'gemmer';
 
 // Initialize Game (800x600)
 game.init({ width: 800, height: 600 });

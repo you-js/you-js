@@ -1,16 +1,16 @@
 {
-  "name": "create-you-js",
+  "name": "create-gemmer",
   "version": "1.0.0",
-  "description": "CLI tool to create You.js projects",
+  "description": "CLI tool to create Gemmer projects",
   "main": "bin/cli.js",
   "bin": {
-    "create-you-js": "./bin/cli.js"
+    "create-gemmer": "./bin/cli.js"
   },
   "type": "module",
   "keywords": [
     "cli",
     "generator",
-    "you-js",
+    "gemmer",
     "game-engine"
   ],
   "author": "",

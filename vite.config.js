@@ -7,8 +7,8 @@ export default defineConfig({
     outDir: 'dist',
     lib: {
       entry: path.resolve(__dirname, 'src/index.js'),
-      name: 'YouJS',
-      fileName: (format) => `you-js.${format}.js`
+      name: 'Gemmer',
+      fileName: (format) => `gemmer.${format}.js`
     }
   }
 });

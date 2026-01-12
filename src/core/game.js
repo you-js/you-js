@@ -38,7 +38,7 @@ export class Game {
         this.context = this.canvas.getContext('2d');
         parent.appendChild(this.canvas);
 
-        console.log(`[You.js] Initialized ${width}x${height}`);
+        console.log(`[Gemmer] Initialized ${width}x${height}`);
     }
 
     // Add an entity to the game world
@@ -51,7 +51,7 @@ export class Game {
     start() {
         this.lastTime = performance.now();
         requestAnimationFrame(this.loop);
-        console.log('[You.js] Game Started');
+        console.log('[Gemmer] Game Started');
     }
 
     // The Main Game Loop
