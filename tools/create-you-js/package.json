@@ -1,0 +1,18 @@
+{
+  "name": "create-you-js",
+  "version": "1.0.0",
+  "description": "CLI tool to create You.js projects",
+  "main": "bin/cli.js",
+  "bin": {
+    "create-you-js": "./bin/cli.js"
+  },
+  "type": "module",
+  "keywords": [
+    "cli",
+    "generator",
+    "you-js",
+    "game-engine"
+  ],
+  "author": "",
+  "license": "ISC"
+}
