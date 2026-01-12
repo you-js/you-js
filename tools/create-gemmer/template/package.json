@@ -1,6 +1,7 @@
 {
   "name": "my-gemmer-game",
   "version": "0.1.0",
+  "main": "electron-main.js",
   "type": "module",
   "scripts": {
     "dev": "vite",
