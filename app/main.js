@@ -3,6 +3,7 @@ import { game } from '../src/core/game.js';
 import { Entity } from '../src/core/entity.js';
 import { Component } from '../src/core/component.js';
 import { SpriteRenderer } from '../src/core/components/sprite-renderer.js';
+import { BoxCollider } from '../src/core/components/box-collider.js';
 import { Loader } from '../src/core/loader.js';
 
 // Define a custom Player Controller Component
@@ -50,15 +51,15 @@ async function startGame() {
         // Add Components (ECS Pattern)
         player.addComponent(new SpriteRenderer(sprite));
         player.addComponent(new PlayerController(200));
+        player.addComponent(new BoxCollider());
 
         game.add(player);
 
-        // Add another entity (Static Box with Color Renderer - simulated by custom component for now, or just fillRect if we had a ShapeRenderer)
-        // For this task, we focus on SpriteRenderer as requested. 
-        // Let's make another entity with just a sprite.
+        // Add another entity (Static Box)
         const boxSprite = await Loader.loadSprite('assets/player.png');
         const box = new Entity(400, 200, 100, 100);
         box.addComponent(new SpriteRenderer(boxSprite));
+        box.addComponent(new BoxCollider({ isStatic: true }));
         game.add(box);
 
         // Start!
