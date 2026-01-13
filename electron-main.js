@@ -10,23 +10,9 @@ const createWindow = () => {
     }
   });
 
-  // Check if we are in development mode (Vite typically runs on port 5173)
-  // We can try to connect to the local server, or fallback to file.
-  // For simplicity in this 'npm run dev' setup, we'll assume the user
-  // runs 'npm run electron' separately OR we can configure concurrent running later.
-  // For now, let's load the file directly for 'electron .' or localhost if dev.
-  
-  // A simple strategy: In dev, we often want to load the URL.
-  // But to keep it simple as "just run", let's try to load the dev server URL.
-  // If not reachable, load index.html.
-  // However, without a concurrent runner, 'npm run dev' just starts vite.
-  // 'npm run electron' starts this.
-  
-  // Let's assume the user will run `npm run dev` in one terminal (providing localhost:5173)
-  // and `npm run electron` in another for desktop testing, 
-  // OR we can make a script that does both.
-  
-  // Check if we are in production build (packaged app)
+  // Load app:
+  // 1. Production: Load packaged 'dist-game/index.html'
+  // 2. Development: Try connecting to Vite server (localhost:5173), fallback to local 'index.html'
   if (app.isPackaged) {
     win.loadFile('dist-game/index.html');
   } else {
