@@ -10,10 +10,17 @@ const createWindow = () => {
     }
   });
 
-  if (process.env.VITE_DEV_SERVER_URL) {
-    win.loadURL('http://localhost:5173');
+  // Load app:
+  // 1. Production: Load packaged 'dist/index.html' (Vite's default output)
+  // 2. Development: Connect to Vite server or load local index.html
+  if (app.isPackaged) {
+    win.loadFile('dist/index.html');
   } else {
-    win.loadFile('index.html');
+    // Try to connect to localhost:5173 (standard Vite port)
+    // Or you can check process.env.VITE_DEV_SERVER_URL if using a concurrent runner
+    win.loadURL('http://localhost:5173').catch(() => {
+        win.loadFile('index.html');
+    });
   }
 };
 
