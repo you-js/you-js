@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
 dist/
+dist-game/
 release/
 
 # Environment variables
