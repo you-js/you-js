@@ -1,11 +1,5 @@
 // User Game Code
-import { game } from '../src/core/game.js';
-import { Entity } from '../src/core/entity.js';
-import { Component } from '../src/core/component.js';
-import { SpriteRenderer } from '../src/core/components/sprite-renderer.js';
-import { BoxCollider } from '../src/core/components/box-collider.js';
-import { Loader } from '../src/core/loader.js';
-import { input } from '../src/core/input.js';
+import { game, Entity, Component, SpriteRenderer, BoxCollider, Loader, input, Sprite } from '../../src/index.js';
 
 // Define a custom Player Controller Component
 class PlayerController extends Component {
@@ -42,23 +36,39 @@ game.init({ width: 800, height: 600 });
 async function startGame() {
     try {
         // Load assets
-        // For demonstration, using a placeholder image since we don't have a real file
-        // Ideally: const sprite = await Loader.loadSprite('assets/player.png');
-        const sprite = await Loader.loadSprite('assets/player.png');
+        // Using a solid color placeholder for the basic app if no asset is present
+        // or ensure assets are copied. For now, let's use the new Sprite API which supports paths.
+        // We will assume 'assets/player.png' might not exist here yet, so let's be safe or just use it if we copied it.
+        // Actually, let's just make a simple colored box using a placeholder if we want it self-contained, 
+        // OR we rely on the fact that we created an 'assets' folder in basic-app too.
+        
+        // Let's create a placeholder programmatically for the basic app so it runs out of the box without external images
+        const createPlaceholder = (w, h, color) => {
+            const c = document.createElement('canvas');
+            c.width = w; c.height = h;
+            const ctx = c.getContext('2d');
+            ctx.fillStyle = color;
+            ctx.fillRect(0,0,w,h);
+            const img = new Image();
+            img.src = c.toDataURL();
+            return img;
+        };
+
+        const playerSprite = new Sprite(createPlaceholder(32, 32, 'cyan'));
+        const boxSprite = new Sprite(createPlaceholder(50, 50, 'orange'));
 
         // Create Player Entity
-        const player = new Entity(100, 300, 50, 50);
+        const player = new Entity(100, 300, 32, 32);
         
         // Add Components (ECS Pattern)
-        player.addComponent(new SpriteRenderer(sprite));
+        player.addComponent(new SpriteRenderer(playerSprite));
         player.addComponent(new PlayerController(200));
         player.addComponent(new BoxCollider());
 
         game.add(player);
 
         // Add another entity (Static Box)
-        const boxSprite = await Loader.loadSprite('assets/player.png');
-        const box = new Entity(400, 200, 100, 100);
+        const box = new Entity(400, 200, 50, 50);
         box.addComponent(new SpriteRenderer(boxSprite));
         box.addComponent(new BoxCollider({ isStatic: true }));
         game.add(box);
