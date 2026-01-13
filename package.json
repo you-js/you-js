@@ -28,8 +28,6 @@
   "scripts": {
     "test": "node test/test-phase-1.js && node test/test-phase-2.js && node test/test-phase-3.js && node test/test-phase-4.js && node test/test-phase-5.js && node test/test-phase-6.js",
     "dev": "vite",
-    "dev-test": "vite --open /test.html",
-    "electron-test": "electron electron-main.js --test",
     "build:lib": "vite build",
     "build:game": "vite build --mode game",
     "dist": "npm run build:game && electron-builder",

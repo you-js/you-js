@@ -1,5 +1,5 @@
 // Test Game Application (Modified for standalone module execution)
-import { game, Entity, Sprite, SpriteRenderer, BoxCollider, Vector2, InputManager, input, Random, Animator, Animation, Loader } from '../src/index.js';
+import { game, Entity, Sprite, SpriteRenderer, BoxCollider, Vector2, InputManager, input, Random, Animator, Animation, Loader } from '../../src/index.js';
 
 console.log("Starting Game Test...");
 
