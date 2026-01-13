@@ -16,13 +16,7 @@ export class SpriteRenderer extends Component {
 
     draw(context) {
         if (this.sprite && this.entity) {
-            context.drawImage(
-                this.sprite.image,
-                this.entity.x,
-                this.entity.y,
-                this.entity.width,
-                this.entity.height
-            );
+            this.sprite.draw(context);
         }
     }
 }
