@@ -8,6 +8,8 @@ export class Game {
         this.width = 800;
         this.height = 600;
         this.entities = [];
+        this.entitiesToAdd = []; // Buffer for entities to be added
+        this.entitiesToRemove = []; // Buffer for entities to be removed
         this.lastTime = 0;
         
         // Systems
@@ -41,10 +43,49 @@ export class Game {
         console.log(`[Gemmer] Initialized ${width}x${height}`);
     }
 
-    // Add an entity to the game world
+    // Add an entity to the game world (buffered)
     add(entity) {
-        this.entities.push(entity);
-        if (entity.onAdd) entity.onAdd(this);
+        this.entitiesToAdd.push(entity);
+        return entity;
+    }
+    
+    // Remove an entity from the game world (buffered)
+    remove(entity) {
+        if (!this.entitiesToRemove.includes(entity)) {
+            this.entitiesToRemove.push(entity);
+        }
+    }
+
+    // Process added/removed entities
+    _processLifecycle() {
+        // Add new entities
+        if (this.entitiesToAdd.length > 0) {
+            for (const entity of this.entitiesToAdd) {
+                this.entities.push(entity);
+                if (entity.onAdd) entity.onAdd(this);
+            }
+            this.entitiesToAdd = [];
+        }
+
+        // Remove destroyed entities
+        // Also check entities marked as destroyed internally
+        const destroyList = this.entities.filter(e => e.isDestroyed);
+        for (const e of destroyList) {
+             if (!this.entitiesToRemove.includes(e)) {
+                 this.entitiesToRemove.push(e);
+             }
+        }
+
+        if (this.entitiesToRemove.length > 0) {
+            for (const entity of this.entitiesToRemove) {
+                const index = this.entities.indexOf(entity);
+                if (index !== -1) {
+                    this.entities.splice(index, 1);
+                    if (entity.onRemove) entity.onRemove(this);
+                }
+            }
+            this.entitiesToRemove = [];
+        }
     }
 
     // Start the game loop
@@ -59,6 +100,9 @@ export class Game {
         // Calculate Delta Time (in seconds)
         const deltaTime = (currentTime - this.lastTime) / 1000;
         this.lastTime = currentTime;
+
+        // 0. Process Lifecycle (Add/Remove entities safe from iteration)
+        this._processLifecycle();
 
         // 1. Update
         this.update(deltaTime);
@@ -90,6 +134,7 @@ export class Game {
         this.context.clearRect(0, 0, this.width, this.height);
 
         // Draw all entities
+        // Sort by z-index if needed later (TODO)
         for (const entity of this.entities) {
             if (entity.draw) entity.draw(this.context);
         }
