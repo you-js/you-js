@@ -26,11 +26,25 @@ const createWindow = () => {
   // and `npm run electron` in another for desktop testing, 
   // OR we can make a script that does both.
   
-  // For this initial setup, let's target the Vite default port.
-  win.loadURL('http://localhost:5173').catch(() => {
-      // Fallback if server is not running (e.g. just double clicked electron)
-      win.loadFile('index.html');
-  });
+  // Handle command line args for testing
+  // Electron args often include the app path, so we check process.argv
+  const isTest = process.argv.includes('--test');
+  const targetUrl = isTest ? 'http://localhost:5173/test.html' : 'http://localhost:5173';
+
+  // For simplicity, if we are in test mode and the dev server isn't likely running
+  // (unless the user started it), we should prefer loading the file directly
+  // to avoid "ERR_CONNECTION_REFUSED".
+  
+  // Also check if we are in production build (packaged app)
+  if (app.isPackaged) {
+    win.loadFile('dist-game/index.html');
+  } else if (isTest) {
+      win.loadFile('test.html');
+  } else {
+      win.loadURL(targetUrl).catch(() => {
+          win.loadFile('index.html');
+      });
+  }
 };
 
 app.whenReady().then(createWindow);
