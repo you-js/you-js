@@ -1,4 +1,5 @@
 import { CollisionSystem } from './collision-system.js';
+import { input } from './input.js';
 
 // The Core Game Engine Singleton
 export class Game {
@@ -110,38 +111,7 @@ export class Game {
         // 2. Physics
         this.collisionSystem.update();
 
-        // Clear input per-frame states
-        // Note: We use the imported 'input' singleton from gemmer.js usually.
-        // But since Game is in core, we don't import 'input' here to avoid circular dep if input uses game.
-        // Instead, we rely on the global exposure or direct import if we refactor.
-        // Ideally, InputManager should be updated explicitly by the user or this loop.
-        // For now, let's try to access it via global if available, or imports.
-        // Actually, let's fix the circular dependency properly later.
-        // For now, we assume 'input' might be globally available or we check common locations.
-        
-        // Fix: Import input directly or pass it in. 
-        // Best practice: The game loop drives the systems. 
-        // We will assume the global 'gemmer.input' or similar if we were a framework.
-        // But here, we can rely on the fact that 'input' module side-effect creates the listener.
-        // To clear frame, we need access to the instance.
-        
-        // Let's use a cleaner approach: expose input on Game or pass it.
-        // For now, we'll try to find it on window (if exposed) or leave it to the user?
-        // No, 'clearFrame' is essential for 'wasKeyPressed' to work.
-        
-        // We will try to access the exported 'input' from the module registry if possible,
-        // but ES modules don't work like that easily without import.
-        
-        // TEMPORARY FIX: We look for 'window.input' or just don't clear?
-        // If we don't clear, 'wasKeyPressed' stays true forever.
-        // Let's import it dynamically or check a known global.
-        if (typeof window !== 'undefined') {
-            if (window.input && typeof window.input.clearFrame === 'function') {
-                 window.input.clearFrame();
-            } else if (window.gemmer && window.gemmer.input && typeof window.gemmer.input.clearFrame === 'function') {
-                 window.gemmer.input.clearFrame();
-            }
-        }
+        input.clearFrame();
 
         // 3. Draw
         this.draw();

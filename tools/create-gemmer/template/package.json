@@ -32,7 +32,7 @@
     }
   },
   "dependencies": {
-    "gemmer": "^0.2.4"
+    "gemmer": "^0.2.5"
   },
   "devDependencies": {
     "electron": "^28.0.0",
