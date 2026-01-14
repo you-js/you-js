@@ -25,7 +25,7 @@ export class Transform extends Component {
         }
 
         let parentTransform = parent;
-        if (parent && parent.constructor.name === 'Entity') {
+        if (parent && typeof parent.getComponent === 'function') {
             parentTransform = parent.getComponent(Transform);
             if (!parentTransform) {
                 console.warn("Entity passed to setParent does not have a Transform component.");
