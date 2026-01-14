@@ -73,20 +73,20 @@ export class InputManager {
     // --- Mouse Handlers ---
 
     _onMouseMove(event) {
-        // We assume global window coordinates, might need adjustment relative to canvas
-        // if canvas is offset. However, clientX/Y are viewport relative.
-        // For game logic, we usually want canvas-relative or world-relative.
-        // Let's store client coordinates here, and user can transform.
-        // Ideally, we get the canvas rect if available.
-        // For now, simple clientX/Y.
-        
-        // If we can access the game canvas, we should adjust.
-        // But InputManager is often a singleton detached from Game instance specifics.
-        // Let's rely on event.clientX/Y for now, and maybe offer a helper later.
-        
-        // Trying to be smart: if game singleton exists and has canvas, use it?
-        // Let's stick to raw coordinates and maybe update if game is available.
-        this.mousePosition.set(event.clientX, event.clientY);
+        // Handle canvas-relative coordinates if the canvas exists
+        const canvas = document.querySelector('canvas');
+        if (canvas) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            
+            const x = (event.clientX - rect.left) * scaleX;
+            const y = (event.clientY - rect.top) * scaleY;
+            this.mousePosition.set(x, y);
+        } else {
+            // Fallback to client coordinates if no canvas found
+            this.mousePosition.set(event.clientX, event.clientY);
+        }
     }
 
     _onMouseDown(event) {
