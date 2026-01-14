@@ -65,8 +65,9 @@ class Player extends Entity {
         }
         
         // Mouse interaction
-        if (input.isMouseButtonDown(0)) {
+        if (input.wasMouseButtonUp(0)) {
              // Click logic
+             console.log("dd");
         }
     }
 }
