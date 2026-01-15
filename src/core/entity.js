@@ -66,6 +66,11 @@ export class Entity {
         return this.components.find(c => c instanceof componentClass);
     }
 
+    hasComponent(componentClass) {
+        return this.components.some(c => c instanceof componentClass);
+    }
+
+
     removeComponent(component) {
         const index = this.components.indexOf(component);
         if (index !== -1) {
