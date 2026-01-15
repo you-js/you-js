@@ -1,9 +1,12 @@
 import { Component } from './component.js';
 import { Transform } from './components/transform.js';
 import { Vector2 } from '../math/vector.js';
+import { UUID } from '../utility/uuid.js';
 
 export class Entity {
     constructor(x = 0, y = 0, width = 32, height = 32) {
+        this.id = UUID.generate();
+
         // Base dimensions (often used for collision/rendering bounds logic)
         // Note: x, y are now effectively aliases for the Transform component's position
         // but we keep them for backward compatibility during migration and ease of access.
