@@ -1,6 +1,6 @@
 {
   "name": "gemmer",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "The simplest and most convenient 2D game engine",
   "keywords": [
     "game-engine",
@@ -15,7 +15,8 @@
   "license": "MIT",
   "type": "module",
   "files": [
-    "dist"
+    "dist",
+    "GEMMER_GUIDE.md"
   ],
   "main": "electron-main.js",
   "module": "./dist/gemmer.es.js",
