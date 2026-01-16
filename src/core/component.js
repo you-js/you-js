@@ -8,6 +8,12 @@ export class Component {
         this.entity = entity;
     }
 
+    onDetach() {
+        this.entity = null;
+    }
+
+    onDestroy() {}
+
     start() {}
 
     update(deltaTime) {}
