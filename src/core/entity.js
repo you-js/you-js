@@ -82,11 +82,35 @@ export class Entity {
         }
     }
 
+    // Called when the entity is added to the Game world
+    onAdd(game) {}
+
+    // Called when the entity is removed from the Game world
+    onRemove(game) {}
+
+    start() {
+        if (!this.isEnabled) return;
+        
+        for (const component of this.components) {
+            if (component.isEnabled !== false) {
+                if (!component._hasStarted) {
+                    component.start();
+                    component._hasStarted = true;
+                }
+            }
+        }
+    }
+
     update(deltaTime) {
         if (!this.isEnabled) return;
         
         for (const component of this.components) {
             if (component.isEnabled !== false) {
+                // Ensure start is called before first update for dynamically added components
+                if (!component._hasStarted) {
+                    component.start();
+                    component._hasStarted = true;
+                }
                 component.update(deltaTime);
             }
         }

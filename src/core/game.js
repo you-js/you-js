@@ -64,6 +64,7 @@ export class Game {
             for (const entity of this.entitiesToAdd) {
                 this.entities.push(entity);
                 if (entity.onAdd) entity.onAdd(this);
+                if (entity.start) entity.start();
             }
             this.entitiesToAdd = [];
         }
