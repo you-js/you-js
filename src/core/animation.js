@@ -14,7 +14,7 @@ export class Animation {
         this.frames = frames;
         this.speed = speed;
         this.loop = loop;
-        
+
         this.currentTime = 0;
         this.currentFrameIndex = 0;
         this.isFinished = false;
@@ -22,7 +22,7 @@ export class Animation {
         // Pre-calculate duration boundaries
         this.totalDuration = 0;
         this.frameBoundaries = [0];
-        
+
         for (const frame of frames) {
             this.totalDuration += frame.duration;
             this.frameBoundaries.push(this.totalDuration);
@@ -65,7 +65,10 @@ export class Animation {
         // But for robust seeking, binary search or linear scan is safer. Linear is fine for small frame counts.
         this.currentFrameIndex = this.frames.length - 1; // Default to last
         for (let i = 0; i < this.frameBoundaries.length - 1; i++) {
-            if (this.currentTime >= this.frameBoundaries[i] && this.currentTime < this.frameBoundaries[i + 1]) {
+            if (
+                this.currentTime >= this.frameBoundaries[i] &&
+                this.currentTime < this.frameBoundaries[i + 1]
+            ) {
                 this.currentFrameIndex = i;
                 break;
             }
@@ -84,7 +87,7 @@ export class Animation {
         const instance = new Animation(this.frames, {
             speed: this.speed,
             loop: this.loop,
-            name: this.name
+            name: this.name,
         });
         instance.currentTime = this.currentTime;
         return instance;

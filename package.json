@@ -1,66 +1,73 @@
 {
-  "name": "gemmer",
-  "version": "0.2.9",
-  "description": "The simplest and most convenient 2D game engine",
-  "keywords": [
-    "game-engine",
-    "2d",
-    "ecs",
-    "javascript",
-    "electron",
-    "vite",
-    "canvas"
-  ],
-  "author": "Gemmer Contributors",
-  "license": "MIT",
-  "type": "module",
-  "files": [
-    "dist",
-    "GEMMER_GUIDE.md"
-  ],
-  "main": "electron-main.js",
-  "module": "./dist/gemmer.es.js",
-  "exports": {
-    ".": {
-      "import": "./dist/gemmer.es.js",
-      "require": "./dist/gemmer.umd.js"
-    }
-  },
-  "scripts": {
-    "test": "node test/test-phase-1.js && node test/test-phase-2.js && node test/test-phase-3.js && node test/test-phase-4.js && node test/test-phase-5.js && node test/test-phase-6.js",
-    "dev": "vite",
-    "build:lib": "vite build",
-    "build:game": "vite build --mode game",
-    "dist": "npm run build:game && electron-builder",
-    "preview": "vite preview",
-    "electron": "electron electron-main.js",
-    "prepublishOnly": "npm run build:lib"
-  },
-  "build": {
-    "appId": "com.gemmer.engine",
-    "productName": "GemmerGame",
-    "files": [
-      "dist-game/**/*",
-      "electron-main.js",
-      "assets/**/*"
+    "name": "gemmer",
+    "version": "0.2.9",
+    "description": "The simplest and most convenient 2D game engine",
+    "keywords": [
+        "game-engine",
+        "2d",
+        "ecs",
+        "javascript",
+        "electron",
+        "vite",
+        "canvas"
     ],
-    "directories": {
-      "output": "release"
+    "author": "Gemmer Contributors",
+    "license": "MIT",
+    "type": "module",
+    "files": [
+        "dist",
+        "GEMMER_GUIDE.md"
+    ],
+    "main": "electron-main.js",
+    "module": "./dist/gemmer.es.js",
+    "exports": {
+        ".": {
+            "import": "./dist/gemmer.es.js",
+            "require": "./dist/gemmer.umd.js"
+        }
     },
-    "win": {
-      "target": "dir",
-      "forceCodeSigning": false
+    "scripts": {
+        "test": "node test/test-phase-1.js && node test/test-phase-2.js && node test/test-phase-3.js && node test/test-phase-4.js && node test/test-phase-5.js && node test/test-phase-6.js",
+        "lint": "eslint .",
+        "format": "prettier --write .",
+        "dev": "vite",
+        "build:lib": "vite build",
+        "build:game": "vite build --mode game",
+        "dist": "npm run build:game && electron-builder",
+        "preview": "vite preview",
+        "electron": "electron electron-main.js",
+        "prepublishOnly": "npm run build:lib"
     },
-    "mac": {
-      "target": "dmg"
+    "build": {
+        "appId": "com.gemmer.engine",
+        "productName": "GemmerGame",
+        "files": [
+            "dist-game/**/*",
+            "electron-main.js",
+            "assets/**/*"
+        ],
+        "directories": {
+            "output": "release"
+        },
+        "win": {
+            "target": "dir",
+            "forceCodeSigning": false
+        },
+        "mac": {
+            "target": "dmg"
+        },
+        "linux": {
+            "target": "AppImage"
+        }
     },
-    "linux": {
-      "target": "AppImage"
+    "devDependencies": {
+        "@eslint/js": "^9.39.2",
+        "electron": "^28.0.0",
+        "electron-builder": "^26.4.0",
+        "eslint": "^9.39.2",
+        "eslint-config-prettier": "^10.1.8",
+        "globals": "^17.0.0",
+        "prettier": "^3.8.0",
+        "vite": "^5.0.0"
     }
-  },
-  "devDependencies": {
-    "electron": "^28.0.0",
-    "electron-builder": "^26.4.0",
-    "vite": "^5.0.0"
-  }
 }

@@ -59,7 +59,7 @@ export class Animator extends Component {
             // Note: context is already transformed. width/height in draw should be the BASE size.
             // But wait, Entity.draw applies transform scale.
             // So we should draw with the BASE dimensions (Entity._width/height).
-            
+
             // However, Entity width/height getters return scaled values.
             // We need the raw dimensions for drawing inside the scaled context?
             // Actually, if we draw rect 0,0,100,100 in a 2x scaled context, it appears as 200,200.
@@ -70,21 +70,21 @@ export class Animator extends Component {
             // If the user sets Entity width=100 and Scale=2, result is 200.
             // If we draw 100 inside 2x scale context, result is 200. Consistent.
             // BUT, if we use entity.width (which is 200) inside 2x scale, result is 400! Double scaling.
-            
+
             // Solution: We need the 'base' size of the entity.
             // In Entity.js, we stored it as _width, _height.
             // But components don't access private/underscored props ideally.
             // Let's assume for now we draw at sprite's native size if not specified?
             // Or use a convention.
             // Most engines: SpriteRenderer has a size, OR it matches Entity size.
-            
+
             // Let's assume we want to match Entity's *visual* bounds.
             // Since context is scaled, we should draw at (width / scaleX).
             // Or simpler: Just draw the sprite's width/height and let the transform handle scaling?
             // If we want the entity to be 32x32, and scale is 1, we draw 32x32.
-            
+
             // Let's use the Sprite's native size by default.
-            sprite.draw(context); 
+            sprite.draw(context);
         }
     }
 }

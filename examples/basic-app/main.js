@@ -1,5 +1,14 @@
 // User Game Code
-import { game, Entity, Component, SpriteRenderer, BoxCollider, Loader, input, Sprite } from '../../src/index.js';
+import {
+    game,
+    Entity,
+    Component,
+    SpriteRenderer,
+    BoxCollider,
+    Loader,
+    input,
+    Sprite,
+} from '../../src/index.js';
 
 // Define a custom Player Controller Component
 class PlayerController extends Component {
@@ -39,16 +48,17 @@ async function startGame() {
         // Using a solid color placeholder for the basic app if no asset is present
         // or ensure assets are copied. For now, let's use the new Sprite API which supports paths.
         // We will assume 'assets/player.png' might not exist here yet, so let's be safe or just use it if we copied it.
-        // Actually, let's just make a simple colored box using a placeholder if we want it self-contained, 
+        // Actually, let's just make a simple colored box using a placeholder if we want it self-contained,
         // OR we rely on the fact that we created an 'assets' folder in basic-app too.
-        
+
         // Let's create a placeholder programmatically for the basic app so it runs out of the box without external images
         const createPlaceholder = (w, h, color) => {
             const c = document.createElement('canvas');
-            c.width = w; c.height = h;
+            c.width = w;
+            c.height = h;
             const ctx = c.getContext('2d');
             ctx.fillStyle = color;
-            ctx.fillRect(0,0,w,h);
+            ctx.fillRect(0, 0, w, h);
             const img = new Image();
             img.src = c.toDataURL();
             return img;
@@ -59,7 +69,7 @@ async function startGame() {
 
         // Create Player Entity
         const player = new Entity(100, 300, 32, 32);
-        
+
         // Add Components (ECS Pattern)
         player.addComponent(new SpriteRenderer(playerSprite));
         player.addComponent(new PlayerController(200));
@@ -75,9 +85,8 @@ async function startGame() {
 
         // Start!
         game.start();
-
     } catch (error) {
-        console.error("Failed to load game:", error);
+        console.error('Failed to load game:', error);
     }
 }
 

@@ -65,7 +65,7 @@ export class CollisionSystem {
             // Calculate centers to determine direction
             const center1 = b1.x + b1.width / 2;
             const center2 = b2.x + b2.width / 2;
-            
+
             // If c1 is to the left of c2, push c1 left (-1), c2 right (+1)
             const dir = center1 < center2 ? -1 : 1;
             this.separate(c1, c2, overlapX, dir, 'x');
@@ -73,7 +73,7 @@ export class CollisionSystem {
             // Vertical collision
             const center1 = b1.y + b1.height / 2;
             const center2 = b2.y + b2.height / 2;
-            
+
             // If c1 is above c2, push c1 up (-1), c2 down (+1)
             const dir = center1 < center2 ? -1 : 1;
             this.separate(c1, c2, overlapY, dir, 'y');
@@ -84,13 +84,13 @@ export class CollisionSystem {
         // dir is the direction c1 should move relative to c2.
         // dir = -1 means c1 moves negative, c2 moves positive
         // dir = 1 means c1 moves positive, c2 moves negative
-        
+
         // If one is static, the other moves full amount
         if (c1.isStatic) {
             // c1 is static, so c2 must move.
             // If dir was -1 (c1 moves left), c2 must move RIGHT (positive)
             // So c2 moves in -dir * amount
-             c2.entity[axis] -= dir * amount;
+            c2.entity[axis] -= dir * amount;
         } else if (c2.isStatic) {
             // c2 is static, so c1 must move.
             // c1 moves in dir * amount

@@ -1,8 +1,8 @@
 export class Vector2 {
     /**
      * Creates a new Vector2.
-     * @param {number} x 
-     * @param {number} y 
+     * @param {number} x
+     * @param {number} y
      */
     constructor(x = 0, y = 0) {
         this.x = x;
@@ -11,8 +11,8 @@ export class Vector2 {
 
     /**
      * Sets the x and y components of this vector.
-     * @param {number} x 
-     * @param {number} y 
+     * @param {number} x
+     * @param {number} y
      * @returns {Vector2} This vector for chaining.
      */
     set(x, y) {
@@ -23,7 +23,7 @@ export class Vector2 {
 
     /**
      * Copies the values from another vector.
-     * @param {Vector2} v 
+     * @param {Vector2} v
      * @returns {Vector2} This vector for chaining.
      */
     copy(v) {
@@ -42,7 +42,7 @@ export class Vector2 {
 
     /**
      * Adds another vector to this one.
-     * @param {Vector2} v 
+     * @param {Vector2} v
      * @returns {Vector2} This vector for chaining.
      */
     add(v) {
@@ -53,7 +53,7 @@ export class Vector2 {
 
     /**
      * Subtracts another vector from this one.
-     * @param {Vector2} v 
+     * @param {Vector2} v
      * @returns {Vector2} This vector for chaining.
      */
     sub(v) {
@@ -64,7 +64,7 @@ export class Vector2 {
 
     /**
      * Multiplies this vector by a scalar.
-     * @param {number} scalar 
+     * @param {number} scalar
      * @returns {Vector2} This vector for chaining.
      */
     mul(scalar) {
@@ -75,11 +75,11 @@ export class Vector2 {
 
     /**
      * Divides this vector by a scalar.
-     * @param {number} scalar 
+     * @param {number} scalar
      * @returns {Vector2} This vector for chaining.
      */
     div(scalar) {
-        if (scalar === 0) throw new Error("Vector2.div: Division by zero");
+        if (scalar === 0) throw new Error('Vector2.div: Division by zero');
         this.x /= scalar;
         this.y /= scalar;
         return this;
@@ -87,7 +87,7 @@ export class Vector2 {
 
     /**
      * Calculates the dot product with another vector.
-     * @param {Vector2} v 
+     * @param {Vector2} v
      * @returns {number} The dot product.
      */
     dot(v) {
@@ -114,7 +114,7 @@ export class Vector2 {
 
     /**
      * Calculates the distance to another vector.
-     * @param {Vector2} v 
+     * @param {Vector2} v
      * @returns {number} The distance.
      */
     distanceTo(v) {
@@ -123,7 +123,7 @@ export class Vector2 {
 
     /**
      * Returns a new normalized vector pointing from this vector to the target.
-     * @param {Vector2} v 
+     * @param {Vector2} v
      * @returns {Vector2} A new Vector2.
      */
     directionTo(v) {
@@ -153,14 +153,26 @@ export class Vector2 {
     }
 
     static div(v, scalar) {
-        if (scalar === 0) throw new Error("Vector2.div: Division by zero");
+        if (scalar === 0) throw new Error('Vector2.div: Division by zero');
         return new Vector2(v.x / scalar, v.y / scalar);
     }
 
-    static get zero() { return new Vector2(0, 0); }
-    static get one() { return new Vector2(1, 1); }
-    static get up() { return new Vector2(0, -1); } // Screen coordinates: up is -y
-    static get down() { return new Vector2(0, 1); }
-    static get left() { return new Vector2(-1, 0); }
-    static get right() { return new Vector2(1, 0); }
+    static get zero() {
+        return new Vector2(0, 0);
+    }
+    static get one() {
+        return new Vector2(1, 1);
+    }
+    static get up() {
+        return new Vector2(0, -1);
+    } // Screen coordinates: up is -y
+    static get down() {
+        return new Vector2(0, 1);
+    }
+    static get left() {
+        return new Vector2(-1, 0);
+    }
+    static get right() {
+        return new Vector2(1, 0);
+    }
 }

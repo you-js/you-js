@@ -1,9 +1,9 @@
 export const MathUtil = {
     /**
      * Clamps a value between a minimum and maximum.
-     * @param {number} value 
-     * @param {number} min 
-     * @param {number} max 
+     * @param {number} value
+     * @param {number} min
+     * @param {number} max
      * @returns {number}
      */
     clamp(value, min, max) {
@@ -12,8 +12,8 @@ export const MathUtil = {
 
     /**
      * Linearly interpolates between two values.
-     * @param {number} start 
-     * @param {number} end 
+     * @param {number} start
+     * @param {number} end
      * @param {number} t Interpolation factor (0-1)
      * @returns {number}
      */
@@ -23,7 +23,7 @@ export const MathUtil = {
 
     /**
      * Sigmoid activation function.
-     * @param {number} x 
+     * @param {number} x
      * @returns {number}
      */
     sigmoid(x) {
@@ -32,7 +32,7 @@ export const MathUtil = {
 
     /**
      * Calculates the sum of an array of numbers.
-     * @param {number[]} array 
+     * @param {number[]} array
      * @returns {number}
      */
     sum(array) {
@@ -41,7 +41,7 @@ export const MathUtil = {
 
     /**
      * Calculates the product of an array of numbers.
-     * @param {number[]} array 
+     * @param {number[]} array
      * @returns {number}
      */
     product(array) {
@@ -51,7 +51,7 @@ export const MathUtil = {
     /**
      * Generates combinations of indices based on counts.
      * Equivalent to 'cases' in original codebase.
-     * @param {number[]} counts 
+     * @param {number[]} counts
      */
     *cases(counts) {
         const total = counts.reduce((acc, cur) => acc * cur, 1);
@@ -71,5 +71,5 @@ export const MathUtil = {
                 }
             }
         }
-    }
+    },
 };

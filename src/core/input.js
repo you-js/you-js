@@ -32,7 +32,7 @@ export class InputManager {
 
         window.addEventListener('keydown', this._onKeyDown);
         window.addEventListener('keyup', this._onKeyUp);
-        
+
         // Use document for mouse events to catch drags outside canvas potentially
         // Or specific target if we want to restrict. Defaulting to window for broader capture.
         window.addEventListener('mousemove', this._onMouseMove);
@@ -79,7 +79,7 @@ export class InputManager {
             const rect = canvas.getBoundingClientRect();
             const scaleX = canvas.width / rect.width;
             const scaleY = canvas.height / rect.height;
-            
+
             const x = (event.clientX - rect.left) * scaleX;
             const y = (event.clientY - rect.top) * scaleY;
             this.mousePosition.set(x, y);
@@ -105,7 +105,7 @@ export class InputManager {
 
     _onWheel(event) {
         // Prevent default scrolling behavior if needed
-        // event.preventDefault(); 
+        // event.preventDefault();
         this.mouseWheelDelta.set(event.deltaX, event.deltaY);
     }
 
@@ -116,18 +116,34 @@ export class InputManager {
     // --- Public API ---
 
     // Keyboard
-    isKeyDown(key) { return this.keysDown.has(key); }
-    wasKeyPressed(key) { return this.keysPressed.has(key); }
-    wasKeyReleased(key) { return this.keysReleased.has(key); }
+    isKeyDown(key) {
+        return this.keysDown.has(key);
+    }
+    wasKeyPressed(key) {
+        return this.keysPressed.has(key);
+    }
+    wasKeyReleased(key) {
+        return this.keysReleased.has(key);
+    }
 
     // Mouse
-    get mouse() { return this.mousePosition; }
-    
-    isMouseButtonDown(button) { return this.mouseButtonsDown.has(button); }
-    wasMouseButtonPressed(button) { return this.mouseButtonsPressed.has(button); }
-    wasMouseButtonReleased(button) { return this.mouseButtonsReleased.has(button); }
-    
-    get scrollDelta() { return this.mouseWheelDelta; }
+    get mouse() {
+        return this.mousePosition;
+    }
+
+    isMouseButtonDown(button) {
+        return this.mouseButtonsDown.has(button);
+    }
+    wasMouseButtonPressed(button) {
+        return this.mouseButtonsPressed.has(button);
+    }
+    wasMouseButtonReleased(button) {
+        return this.mouseButtonsReleased.has(button);
+    }
+
+    get scrollDelta() {
+        return this.mouseWheelDelta;
+    }
 
     // --- Lifecycle ---
 

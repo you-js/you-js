@@ -1,18 +1,18 @@
 {
-  "name": "create-gemmer",
-  "version": "1.1.7",
-  "description": "CLI tool to create Gemmer projects",
-  "main": "bin/cli.js",
-  "bin": {
-    "create-gemmer": "./bin/cli.js"
-  },
-  "type": "module",
-  "keywords": [
-    "cli",
-    "generator",
-    "gemmer",
-    "game-engine"
-  ],
-  "author": "",
-  "license": "ISC"
+    "name": "create-gemmer",
+    "version": "1.1.7",
+    "description": "CLI tool to create Gemmer projects",
+    "main": "bin/cli.js",
+    "bin": {
+        "create-gemmer": "./bin/cli.js"
+    },
+    "type": "module",
+    "keywords": [
+        "cli",
+        "generator",
+        "gemmer",
+        "game-engine"
+    ],
+    "author": "",
+    "license": "ISC"
 }

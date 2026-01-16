@@ -1,0 +1,5 @@
+dist/
+dist-game/
+release/
+node_modules/
+package-lock.json

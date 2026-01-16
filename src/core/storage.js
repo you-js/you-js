@@ -7,7 +7,7 @@ class WebStorage {
             localStorage.setItem(key, serialized);
             return true;
         } catch (e) {
-            console.error("WebStorage Save Error:", e);
+            console.error('WebStorage Save Error:', e);
             return false;
         }
     }
@@ -17,7 +17,7 @@ class WebStorage {
             const data = localStorage.getItem(key);
             return data ? JSON.parse(data) : null;
         } catch (e) {
-            console.error("WebStorage Load Error:", e);
+            console.error('WebStorage Load Error:', e);
             return null;
         }
     }
@@ -48,12 +48,12 @@ class DesktopStorage {
 
     load(key) {
         if (this.bridge && typeof this.bridge.loadData === 'function') {
-             const data = this.bridge.loadData(key);
-             try {
-                 return data ? JSON.parse(data) : null;
-             } catch (e) {
-                 console.error("DesktopStorage Parse Error:", e);
-             }
+            const data = this.bridge.loadData(key);
+            try {
+                return data ? JSON.parse(data) : null;
+            } catch (e) {
+                console.error('DesktopStorage Parse Error:', e);
+            }
         }
         return null;
     }
@@ -76,12 +76,12 @@ export const Storage = {
         // Check for Electron ContextBridge
         // Standard convention: window.electron or window.api
         const bridge = window.electron || window.api || window.electronContextBridge;
-        
+
         if (bridge) {
-            console.log("[Gemmer] Using Desktop Storage");
+            console.log('[Gemmer] Using Desktop Storage');
             this._impl = new DesktopStorage(bridge);
         } else {
-            console.log("[Gemmer] Using Web Storage (localStorage)");
+            console.log('[Gemmer] Using Web Storage (localStorage)');
             this._impl = new WebStorage();
         }
     },
@@ -95,7 +95,7 @@ export const Storage = {
         if (!this._impl) this._init();
         return this._impl.load(key);
     },
-    
+
     remove(key) {
         if (!this._impl) this._init();
         this._impl.remove(key);
@@ -104,5 +104,5 @@ export const Storage = {
     clear() {
         if (!this._impl) this._init();
         this._impl.clear();
-    }
+    },
 };

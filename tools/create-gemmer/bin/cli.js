@@ -12,9 +12,9 @@ const __dirname = path.dirname(__filename);
 const projectName = process.argv[2];
 
 if (!projectName) {
-  console.error('Please specify the project name:');
-  console.error('  npx create-gemmer <project-directory>');
-  process.exit(1);
+    console.error('Please specify the project name:');
+    console.error('  npx create-gemmer <project-directory>');
+    process.exit(1);
 }
 
 const currentDir = process.cwd();
@@ -23,29 +23,29 @@ const templateDir = path.resolve(__dirname, '../template');
 
 // Create project directory
 if (fs.existsSync(projectDir)) {
-  console.error(`Directory ${projectName} already exists.`);
-  process.exit(1);
+    console.error(`Directory ${projectName} already exists.`);
+    process.exit(1);
 }
 
 fs.mkdirSync(projectDir, { recursive: true });
 
 // Function to copy directory recursively
 function copyDir(src, dest) {
-  const entries = fs.readdirSync(src, { withFileTypes: true });
+    const entries = fs.readdirSync(src, { withFileTypes: true });
 
-  for (const entry of entries) {
-    const srcPath = path.join(src, entry.name);
-    // Rename _gitignore to .gitignore
-    const destName = entry.name === '_gitignore' ? '.gitignore' : entry.name;
-    const destPath = path.join(dest, destName);
+    for (const entry of entries) {
+        const srcPath = path.join(src, entry.name);
+        // Rename _gitignore to .gitignore
+        const destName = entry.name === '_gitignore' ? '.gitignore' : entry.name;
+        const destPath = path.join(dest, destName);
 
-    if (entry.isDirectory()) {
-      fs.mkdirSync(destPath);
-      copyDir(srcPath, destPath);
-    } else {
-      fs.copyFileSync(srcPath, destPath);
+        if (entry.isDirectory()) {
+            fs.mkdirSync(destPath);
+            copyDir(srcPath, destPath);
+        } else {
+            fs.copyFileSync(srcPath, destPath);
+        }
     }
-  }
 }
 
 // Copy template files

@@ -1,13 +1,16 @@
 import { Vector2 } from '../math/vector.js';
 
 export class Sprite {
-    constructor(image, { areaPosition = new Vector2(0, 0), areaSize = null, pivot = new Vector2(0.5, 0.5) } = {}) {
+    constructor(
+        image,
+        { areaPosition = new Vector2(0, 0), areaSize = null, pivot = new Vector2(0.5, 0.5) } = {}
+    ) {
         // Handle string path or Image object
         if (typeof image === 'string') {
             const img = new Image();
             img.src = image;
             this.image = img;
-            
+
             // If areaSize is explicitly set, use it for logical size immediately
             if (areaSize) {
                 this.width = areaSize.x;
@@ -27,18 +30,25 @@ export class Sprite {
         } else {
             this.image = image;
             if (areaSize) {
-                 this.width = areaSize.x;
-                 this.height = areaSize.y;
+                this.width = areaSize.x;
+                this.height = areaSize.y;
             } else {
-                 this.width = image.naturalWidth;
-                 this.height = image.naturalHeight;
+                this.width = image.naturalWidth;
+                this.height = image.naturalHeight;
             }
         }
-        
+
         // Define source area (cutout from the image)
-        this.areaPosition = areaPosition instanceof Vector2 ? areaPosition : new Vector2(areaPosition.x, areaPosition.y);
-        this.areaSize = areaSize ? (areaSize instanceof Vector2 ? areaSize : new Vector2(areaSize.x, areaSize.y)) : null;
-        
+        this.areaPosition =
+            areaPosition instanceof Vector2
+                ? areaPosition
+                : new Vector2(areaPosition.x, areaPosition.y);
+        this.areaSize = areaSize
+            ? areaSize instanceof Vector2
+                ? areaSize
+                : new Vector2(areaSize.x, areaSize.y)
+            : null;
+
         // Pivot/Anchor point (0.5, 0.5 is center)
         this.pivot = pivot instanceof Vector2 ? pivot : new Vector2(pivot.x ?? 0.5, pivot.y ?? 0.5);
     }
@@ -56,7 +66,7 @@ export class Sprite {
         // If it IS set, we use it.
         const sX = this.areaPosition.x;
         const sY = this.areaPosition.y;
-        
+
         let sW, sH;
         if (this.areaSize) {
             sW = this.areaSize.x;
@@ -82,8 +92,14 @@ export class Sprite {
 
             context.drawImage(
                 this.image,
-                sX, sY, sW, sH, // Source rect (cutout)
-                offsetX, offsetY, dW, dH // Destination rect (draw on screen)
+                sX,
+                sY,
+                sW,
+                sH, // Source rect (cutout)
+                offsetX,
+                offsetY,
+                dW,
+                dH // Destination rect (draw on screen)
             );
         } catch (e) {
             // Suppress drawing errors

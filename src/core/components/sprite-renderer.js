@@ -5,7 +5,7 @@ export class SpriteRenderer extends Component {
     constructor(sprite) {
         super();
         if (sprite && !(sprite instanceof Sprite)) {
-             throw new Error('SpriteRenderer: argument must be an instance of Sprite');
+            throw new Error('SpriteRenderer: argument must be an instance of Sprite');
         }
         this.sprite = sprite;
     }

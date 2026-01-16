@@ -12,10 +12,10 @@ export class Game {
         this.entitiesToAdd = []; // Buffer for entities to be added
         this.entitiesToRemove = []; // Buffer for entities to be removed
         this.lastTime = 0;
-        
+
         // Systems
         this.collisionSystem = new CollisionSystem(this);
-        
+
         // Bind loop to maintain 'this' context
         this.loop = this.loop.bind(this);
     }
@@ -31,13 +31,13 @@ export class Game {
         this.canvas.height = this.height;
         this.canvas.style.display = 'block';
         this.canvas.style.background = '#000'; // Default background
-        
+
         // Center the canvas
         this.canvas.style.position = 'absolute';
         this.canvas.style.left = '50%';
         this.canvas.style.top = '50%';
         this.canvas.style.transform = 'translate(-50%, -50%)';
-        
+
         this.context = this.canvas.getContext('2d');
         parent.appendChild(this.canvas);
 
@@ -49,7 +49,7 @@ export class Game {
         this.entitiesToAdd.push(entity);
         return entity;
     }
-    
+
     // Remove an entity from the game world (buffered)
     remove(entity) {
         if (!this.entitiesToRemove.includes(entity)) {
@@ -73,9 +73,9 @@ export class Game {
         // Also check entities marked as destroyed internally
         const destroyList = this.entities.filter(e => e.isDestroyed);
         for (const e of destroyList) {
-             if (!this.entitiesToRemove.includes(e)) {
-                 this.entitiesToRemove.push(e);
-             }
+            if (!this.entitiesToRemove.includes(e)) {
+                this.entitiesToRemove.push(e);
+            }
         }
 
         if (this.entitiesToRemove.length > 0) {

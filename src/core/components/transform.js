@@ -4,11 +4,13 @@ import { Vector2 } from '../../math/vector.js';
 export class Transform extends Component {
     constructor({ position = new Vector2(0, 0), rotation = 0, scale = new Vector2(1, 1) } = {}) {
         super();
-        
+
         // Local transformations
-        this.localPosition = position instanceof Vector2 ? position : new Vector2(position.x, position.y);
+        this.localPosition =
+            position instanceof Vector2 ? position : new Vector2(position.x, position.y);
         this.localRotation = rotation; // In Degrees
-        this.localScale = scale instanceof Vector2 ? scale : new Vector2(scale.x || 1, scale.y || 1);
+        this.localScale =
+            scale instanceof Vector2 ? scale : new Vector2(scale.x || 1, scale.y || 1);
 
         // Hierarchy
         this.parent = null;
@@ -28,7 +30,7 @@ export class Transform extends Component {
         if (parent && typeof parent.getComponent === 'function') {
             parentTransform = parent.getComponent(Transform);
             if (!parentTransform) {
-                console.warn("Entity passed to setParent does not have a Transform component.");
+                console.warn('Entity passed to setParent does not have a Transform component.');
                 return;
             }
         }
@@ -63,7 +65,7 @@ export class Transform extends Component {
 
         // Simple 2D transformation hierarchy logic
         // GlobalPos = ParentGlobalPos + (ParentGlobalScale * (Rotated LocalPos))
-        
+
         // 1. Get parent's global properties
         const parentPos = this.parent.globalPosition;
         const parentRot = this.parent.globalRotation * (Math.PI / 180); // To Radians
@@ -93,7 +95,7 @@ export class Transform extends Component {
     }
 
     // --- Helper Methods ---
-    
+
     translate(x, y) {
         this.localPosition.x += x;
         this.localPosition.y += y;
