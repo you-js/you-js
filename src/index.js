@@ -1,3 +1,4 @@
+export { Scene } from './core/scene.js';
 export { Game, game } from './core/game.js';
 export { Entity } from './core/entity.js';
 export { Component } from './core/component.js';

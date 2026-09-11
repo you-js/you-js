@@ -1,16 +1,22 @@
 import { CollisionSystem } from './collision-system.js';
 import { input } from './input.js';
+import { Scene } from './scene.js';
 
 // The Core Game Engine Singleton
 export class Game {
-    constructor() {
+    constructor(scene = null) {
         this.canvas = null;
         this.context = null;
         this.width = 800;
         this.height = 600;
-        this.entities = [];
-        this.entitiesToAdd = []; // Buffer for entities to be added
-        this.entitiesToRemove = []; // Buffer for entities to be removed
+        this._currentScene = null;
+        this._pendingScene = null;
+        this._hasPendingScene = false;
+        this._transitionScene = null;
+        this._isTransitioning = false;
+        this._validateScene(scene);
+        this._currentScene = scene;
+        if (scene !== null) scene.game = this;
         this.lastTime = 0;
 
         // Systems
@@ -44,50 +50,81 @@ export class Game {
         console.log(`[Gemmer] Initialized ${width}x${height}`);
     }
 
-    // Add an entity to the game world (buffered)
+    get currentScene() {
+        return this._currentScene;
+    }
+
+    get entities() {
+        return this.currentScene === null ? [] : this.currentScene.entities;
+    }
+
+    get entitiesToAdd() {
+        return this.currentScene === null ? [] : this.currentScene.entitiesToAdd;
+    }
+
+    get entitiesToRemove() {
+        return this.currentScene === null ? [] : this.currentScene.entitiesToRemove;
+    }
+
+    _validateScene(scene) {
+        if (scene === null) return;
+        if (!(scene instanceof Scene)) throw new Error('Game: expected a Scene or null');
+        if (scene._isClosed) throw new Error('Game: scene is closed');
+        if (scene.game !== null && scene.game !== this) {
+            throw new Error('Game: scene belongs to another Game');
+        }
+    }
+
+    changeScene(scene) {
+        this._validateScene(scene);
+        if (
+            this._hasPendingScene &&
+            this._pendingScene !== null &&
+            this._pendingScene !== this.currentScene
+        ) {
+            this._pendingScene.game = null;
+        }
+        const destination = this._isTransitioning ? this._transitionScene : this.currentScene;
+        this._pendingScene = scene;
+        this._hasPendingScene = scene !== destination;
+        if (scene !== null) scene.game = this;
+    }
+
+    _processSceneTransition() {
+        if (this.context === null) return;
+        if (this._hasPendingScene) this._validateScene(this._pendingScene);
+        if (this._hasPendingScene) {
+            const nextScene = this._pendingScene;
+            this._pendingScene = null;
+            this._hasPendingScene = false;
+            this._transitionScene = nextScene;
+            this._isTransitioning = true;
+            try {
+                if (this.currentScene !== null) this.currentScene._close();
+                this._currentScene = nextScene;
+            } finally {
+                this._isTransitioning = false;
+                this._transitionScene = null;
+            }
+        }
+        if (this.currentScene !== null && !this.currentScene._hasEntered) {
+            this.currentScene._hasEntered = true;
+            this.currentScene.enter();
+        }
+    }
+
     add(entity) {
-        this.entitiesToAdd.push(entity);
-        return entity;
+        if (this.currentScene === null) throw new Error('Game.add: no active Scene');
+        return this.currentScene.add(entity);
     }
 
-    // Remove an entity from the game world (buffered)
     remove(entity) {
-        if (!this.entitiesToRemove.includes(entity)) {
-            this.entitiesToRemove.push(entity);
-        }
+        if (this.currentScene === null) throw new Error('Game.remove: no active Scene');
+        this.currentScene.remove(entity);
     }
 
-    // Process added/removed entities
     _processLifecycle() {
-        // Add new entities
-        if (this.entitiesToAdd.length > 0) {
-            for (const entity of this.entitiesToAdd) {
-                this.entities.push(entity);
-                if (entity.onAdd) entity.onAdd(this);
-                if (entity.start) entity.start();
-            }
-            this.entitiesToAdd = [];
-        }
-
-        // Remove destroyed entities
-        // Also check entities marked as destroyed internally
-        const destroyList = this.entities.filter(e => e.isDestroyed);
-        for (const e of destroyList) {
-            if (!this.entitiesToRemove.includes(e)) {
-                this.entitiesToRemove.push(e);
-            }
-        }
-
-        if (this.entitiesToRemove.length > 0) {
-            for (const entity of this.entitiesToRemove) {
-                const index = this.entities.indexOf(entity);
-                if (index !== -1) {
-                    this.entities.splice(index, 1);
-                    if (entity.onRemove) entity.onRemove(this);
-                }
-            }
-            this.entitiesToRemove = [];
-        }
+        if (this.currentScene !== null) this.currentScene._processLifecycle();
     }
 
     // Start the game loop
@@ -104,13 +141,14 @@ export class Game {
         this.lastTime = currentTime;
 
         // 0. Process Lifecycle (Add/Remove entities safe from iteration)
+        this._processSceneTransition();
         this._processLifecycle();
 
         // 1. Update
         this.update(deltaTime);
 
         // 2. Physics
-        this.collisionSystem.update();
+        if (this.currentScene !== null) this.collisionSystem.update();
 
         input.clearFrame();
 
@@ -122,23 +160,17 @@ export class Game {
     }
 
     update(deltaTime) {
-        // Update all entities
-        for (const entity of this.entities) {
-            if (entity.update) entity.update(deltaTime);
-        }
+        if (this.currentScene === null) return;
+        this.currentScene.update(deltaTime);
+        this.currentScene._updateEntities(deltaTime);
     }
 
     draw() {
-        // Clear Screen
         this.context.clearRect(0, 0, this.width, this.height);
-
-        // Draw all entities
-        // Sort by z-index if needed later (TODO)
-        for (const entity of this.entities) {
-            if (entity.draw) entity.draw(this.context);
-        }
+        if (this.currentScene === null) return;
+        this.currentScene.draw(this.context);
+        this.currentScene._drawEntities(this.context);
     }
 }
 
-// Export a singleton instance for simplicity
 export const game = new Game();

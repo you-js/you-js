@@ -29,7 +29,9 @@ npm install gemmer
 #### 1. 게임 초기화
 
 ```javascript
-import { game } from 'gemmer';
+import { Game, Scene } from 'gemmer';
+
+const game = new Game(new Scene());
 
 game.init({
     width: 800,

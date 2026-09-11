@@ -102,16 +102,33 @@ Gemmer uses an ECS approach that composes components on entities. You can also s
 
 ### 4.1 Game
 
-`game` is a singleton that manages the game loop, entities, rendering, and collision system.
+`game` is a singleton that manages the loop, canvas, and collision system. A `Scene` owns entities.
 
 ```javascript
-import { game } from 'gemmer';
+import { game, Scene } from 'gemmer';
 
 game.init({ width: 800, height: 600 });
+game.changeScene(new Scene());
 game.start();
 ```
 
 `game.init()` creates a Canvas and appends it to the specified parent element, or to `document.body` when no parent is provided.
+
+### Scene
+
+Use `new Game(new Scene())` to supply a scene at construction. Without one,
+`currentScene` is `null`; only canvas clearing and frame input cleanup run.
+The singleton can use `changeScene(scene)` as shown above.
+
+Transitions apply at the next frame boundary. `game.add/remove` throw without an active scene,
+so run the entity snippets below after scene entry or inside `Scene.enter()`.
+`changeScene(null)` closes the previous scene and returns to an empty canvas.
+Closed scenes are not reusable; construct fresh instances to restart.
+
+Override `enter()`, `exit()`, `update(deltaTime)`, and `draw(context)` as needed.
+The engine updates and draws entities separately; these hooks need no super calls.
+Release subscriptions and timers in `exit()` and load assets before switching scenes.
+See `examples/scene-app/index.html`: press Enter for title → play → result → restart.
 
 ### 4.2 Entity
 

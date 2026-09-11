@@ -1,3 +1,4 @@
+import { Scene } from '../src/core/scene.js';
 // Test script for Phase 2: Core ECS Enhancements
 import { Entity } from '../src/core/entity.js';
 import { Game } from '../src/core/game.js';
@@ -79,7 +80,7 @@ assert(
 
 // 3. Lifecycle & Game Loop Buffer
 console.log('\n--- Game Lifecycle ---');
-const game = new Game();
+const game = new Game(new Scene());
 game.init({ parent: mockParent });
 
 const e1 = new Entity();

@@ -1,6 +1,7 @@
 // User Game Code
 import {
-    game,
+    Game,
+    Scene,
     Entity,
     Component,
     SpriteRenderer,
@@ -9,6 +10,8 @@ import {
     input,
     Sprite,
 } from '../../src/index.js';
+
+const game = new Game(new Scene());
 
 // Define a custom Player Controller Component
 class PlayerController extends Component {

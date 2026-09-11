@@ -1,5 +1,6 @@
 import {
-    game,
+    Game,
+    Scene,
     input,
     Entity,
     Component,
@@ -7,6 +8,8 @@ import {
     StateMachine,
     StateMachineComponent,
 } from '../../src/index.js';
+
+const game = new Game(new Scene());
 
 class PlayerContext {
     constructor(entity, stateLabel) {

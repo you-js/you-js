@@ -102,16 +102,33 @@ Gemmer는 엔티티에 컴포넌트를 조합하는 ECS 방식을 사용하며, 
 
 ### 4.1 Game
 
-`game`은 게임 루프, 엔티티, 렌더링과 충돌 시스템을 관리하는 싱글톤입니다.
+`game`은 게임 루프, 캔버스와 충돌 시스템을 관리하는 싱글톤이며, 엔티티는 `Scene`이 소유합니다.
 
 ```javascript
-import { game } from 'gemmer';
+import { game, Scene } from 'gemmer';
 
 game.init({ width: 800, height: 600 });
+game.changeScene(new Scene());
 game.start();
 ```
 
 `game.init()`은 Canvas를 생성해 지정한 부모 요소에 추가하며, 부모를 생략하면 `document.body`를 사용합니다.
+
+### Scene
+
+`new Game(new Scene())`으로 생성 시 Scene을 지정할 수 있습니다. 생략하면
+`currentScene`은 `null`이며 화면 초기화와 프레임 입력 정리만 실행합니다.
+싱글톤은 위 예제처럼 `changeScene(scene)`으로 지정합니다.
+
+전환은 다음 프레임 시작에 적용됩니다. 활성 Scene이 없을 때 `game.add/remove`는 오류를
+발생시키므로, 아래 엔티티 코드는 Scene 진입 이후나 `Scene.enter()`에서 실행합니다.
+`changeScene(null)`은 기존 Scene을 정리하고 빈 화면으로 돌아갑니다.
+종료한 Scene은 재사용하지 않으며, 재시작에는 새 인스턴스를 전달합니다.
+
+`enter()`, `exit()`, `update(deltaTime)`, `draw(context)`를 재정의할 수 있습니다.
+엔티티 순회는 엔진이 별도로 수행하므로 훅에서 `super`를 호출할 필요가 없습니다.
+직접 등록한 이벤트와 타이머는 `exit()`에서 해제하고, 리소스는 전환 전에 로딩합니다.
+실행 예제: `examples/scene-app/index.html` (Enter로 타이틀 → 플레이 → 결과 → 재시작).
 
 ### 4.2 Entity
 

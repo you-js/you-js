@@ -1,6 +1,7 @@
 // Test Game Application (Modified for standalone module execution)
 import {
-    game,
+    Game,
+    Scene,
     Entity,
     Sprite,
     SpriteRenderer,
@@ -13,6 +14,8 @@ import {
     Animation,
     Loader,
 } from '../../src/index.js';
+
+const game = new Game(new Scene());
 
 console.log('Starting Game Test...');
 
