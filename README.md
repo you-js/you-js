@@ -1,74 +1,74 @@
-# Gemmer Engine
+**한국어** | [English](./README.en.md)
 
-Gemmer (formerly you-js) is a lightweight, modern 2D game engine built with JavaScript, Vite, and Electron. It features a robust Entity-Component-System (ECS) architecture designed for simplicity and ease of use.
+# Gemmer
 
-## Features
+Gemmer는 JavaScript, Vite, Electron으로 만든 가볍고 현대적인 2D 게임 엔진입니다. 단순하고 편리하게 사용할 수 있도록 설계된 견고한 엔티티-컴포넌트-시스템(ECS) 아키텍처를 제공합니다.
 
-- **ECS Architecture:** Flexible `Entity`, `Component`, and `System` structure.
-- **Rendering:** Canvas-based `SpriteRenderer` with support for anchors, pivots, and layers.
-- **Animation:** Frame-based `Animator` system.
-- **Physics:** AABB collision detection via `BoxCollider`.
-- **Input:** Unified `InputManager` for Keyboard and Mouse.
-- **Audio:** `AudioManager` for background music and sound effects.
-- **Cross-Platform:** Builds for Web and Desktop (via Electron).
+## 주요 기능
 
-## Getting Started
+- **ECS 아키텍처:** 유연한 `Entity`, `Component`, `System` 구조
+- **렌더링:** 이미지 영역 잘라내기와 피벗을 지원하는 Canvas 기반 `SpriteRenderer`
+- **애니메이션:** 프레임 기반 `Animator` 시스템
+- **물리:** `BoxCollider`를 이용한 AABB 충돌 감지
+- **입력:** 키보드와 마우스를 통합 지원하는 `InputManager`
+- **오디오:** 배경 음악과 효과음을 관리하는 `AudioManager`
+- **크로스 플랫폼:** 웹 및 Electron 기반 데스크톱 앱 빌드 지원
 
-### Installation
+## 시작하기
+
+### 설치
 
 ```bash
 npm install gemmer
 ```
 
-_(Note: Currently in local development. Clone the repository to use.)_
+> 현재 로컬 개발 중인 프로젝트입니다. 필요한 경우 저장소를 복제하여 사용하세요.
 
-### Quick Start
+### 빠른 시작
 
-1.  **Initialize the Game:**
+#### 1. 게임 초기화
 
 ```javascript
-import { Game } from 'gemmer';
+import { game } from 'gemmer';
 
-const game = new Game({
+game.init({
     width: 800,
     height: 600,
-    backgroundColor: '#333',
 });
 
 game.start();
 ```
 
-2.  **Create an Entity:**
+#### 2. 엔티티 생성
 
 ```javascript
-import { Entity, SpriteRenderer, Sprite, Vector2 } from 'gemmer';
+import { Entity, SpriteRenderer, Sprite } from 'gemmer';
 
-// Create a player entity
-const player = new Entity('Player');
-player.position = new Vector2(400, 300);
+// (400, 300) 위치에 플레이어 엔티티 생성
+const player = new Entity(400, 300);
 
-// Add a sprite
+// 스프라이트 컴포넌트 추가
 const sprite = new Sprite('assets/player.png');
 player.addComponent(new SpriteRenderer(sprite));
 
-// Add to game
-game.addEntity(player);
+// 게임 월드에 추가
+game.add(player);
 ```
 
-3.  **Create a Custom Component:**
+#### 3. 사용자 정의 컴포넌트 생성
 
 ```javascript
 import { Component, input } from 'gemmer';
 
 class PlayerController extends Component {
-    update(dt) {
+    update(deltaTime) {
         const speed = 200;
 
         if (input.isKeyDown('ArrowRight')) {
-            this.entity.x += speed * dt;
+            this.entity.x += speed * deltaTime;
         }
         if (input.isKeyDown('ArrowLeft')) {
-            this.entity.x -= speed * dt;
+            this.entity.x -= speed * deltaTime;
         }
     }
 }
@@ -76,34 +76,40 @@ class PlayerController extends Component {
 player.addComponent(new PlayerController());
 ```
 
-## Architecture Overview
+## 아키텍처 개요
 
-### Core
+### 핵심 요소
 
-- **Game:** The central hub that manages the game loop, scenes (entities), and systems.
-- **Entity:** A general-purpose object in the game world. Has a `Transform` (position, rotation, scale) by default.
-- **Component:** Data or logic attached to an Entity (e.g., `SpriteRenderer`, `BoxCollider`).
+- **Game:** 게임 루프, 엔티티, 시스템을 관리하는 중심 객체
+- **Entity:** 게임 월드에 존재하는 범용 객체로, 위치·회전·크기를 관리하는 `Transform`을 기본 제공
+- **Component:** `SpriteRenderer`, `BoxCollider`처럼 엔티티에 데이터나 동작을 추가하는 객체
 
-### Systems
+### 시스템
 
-- **InputManager (`input`):** Handles user input.
+- **InputManager (`input`):** 사용자 입력 처리
     - `input.isKeyDown(key)`
-    - `input.mouse` (Vector2)
-- **AudioManager (`audio`):** Handles sound.
+    - `input.mouse`
+- **AudioManager (`audio`):** 사운드 처리
     - `audio.play('bgm')`
     - `audio.playOneShot('sfx')`
 
-## Development
+## 문서
 
-### Scripts
+- [한국어 Gemmer 엔진 가이드](./GEMMER_GUIDE.ko.md)
+- [English Gemmer Engine Guide](./GEMMER_GUIDE.en.md)
 
-- `npm run dev`: Start the Vite development server.
-- `npm run dev-test`: Launch the browser test suite.
-- `npm run electron`: Launch the Electron desktop app.
-- `npm run test`: Run headless unit tests.
-- `npm run build:lib`: Build the engine library for distribution (npm).
-- `npm run dist`: Build and package the game as a desktop application (.exe, .dmg).
+## 개발
 
-## License
+### 스크립트
+
+- `npm run dev`: Vite 개발 서버 실행
+- `npm run electron`: `npm run dev`가 실행 중일 때 Electron 데스크톱 앱 실행
+- `npm run test`: 헤드리스 단위 테스트 실행
+- `npm run lint`: ESLint 검사 실행
+- `npm run build:lib`: npm 배포용 엔진 라이브러리 빌드
+- `npm run build:game`: 게임의 웹 배포용 빌드 생성
+- `npm run dist`: 게임을 데스크톱 애플리케이션으로 빌드 및 패키징
+
+## 라이선스
 
 MIT
