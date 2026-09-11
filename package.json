@@ -1,6 +1,6 @@
 {
     "name": "gemmer",
-    "version": "0.2.11",
+    "version": "0.2.12",
     "description": "The simplest and most convenient 2D game engine",
     "keywords": [
         "game-engine",
@@ -28,7 +28,7 @@
         }
     },
     "scripts": {
-        "test": "node test/test-phase-1.js && node test/test-phase-2.js && node test/test-phase-3.js && node test/test-phase-4.js && node test/test-phase-5.js && node test/test-phase-6.js",
+        "test": "node test/test-phase-1.js && node test/test-phase-2.js && node test/test-phase-3.js && node test/test-phase-4.js && node test/test-phase-5.js && node test/test-phase-6.js && node test/test-state-machine.js",
         "lint": "eslint .",
         "format": "prettier --write .",
         "dev": "vite",

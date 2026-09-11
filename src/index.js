@@ -1,6 +1,9 @@
 export { Game, game } from './core/game.js';
 export { Entity } from './core/entity.js';
 export { Component } from './core/component.js';
+export { State } from './core/state.js';
+export { StateMachine } from './core/state-machine.js';
+export { StateMachineComponent } from './core/components/state-machine.js';
 export { InputManager, input } from './core/input.js';
 export { AudioManager, audio } from './core/audio-system.js';
 export { Storage } from './core/storage.js';
